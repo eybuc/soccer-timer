@@ -86,7 +86,7 @@ class SoccerTimer {
         
         // Export/Import functionality
         this.exportListsBtn.addEventListener('click', () => this.exportLists());
-        this.importListsBtn.addEventListener('click', () => this.importFileInput.click());
+        this.importListsBtn.addEventListener('click', () => this.triggerFileInput());
         this.importFileInput.addEventListener('change', (e) => this.importLists(e));
         
         // Modal functionality
@@ -750,10 +750,11 @@ class SoccerTimer {
         }
     }
     
-    // Drag and Drop Functionality
+    // Drag and Drop Functionality (Desktop + Mobile)
     addDragAndDrop(card, playerId) {
         card.draggable = true;
         
+        // Desktop drag and drop
         card.addEventListener('dragstart', (e) => {
             this.isDragging = true;
             this.draggedPlayerId = playerId;
@@ -794,6 +795,84 @@ class SoccerTimer {
                 this.movePlayer(this.draggedPlayerId, playerId);
             }
         });
+        
+        // Mobile touch events
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        let isTouchDragging = false;
+        
+        card.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+                isTouchDragging = false;
+            }
+        }, { passive: true });
+        
+        card.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1) {
+                const touchY = e.touches[0].clientY;
+                const touchDuration = Date.now() - touchStartTime;
+                
+                // Start dragging if moved enough and held long enough
+                if (!isTouchDragging && Math.abs(touchY - touchStartY) > 10 && touchDuration > 200) {
+                    isTouchDragging = true;
+                    this.isDragging = true;
+                    this.draggedPlayerId = playerId;
+                    card.classList.add('dragging');
+                    
+                    // Add haptic feedback if available
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
+                }
+                
+                if (isTouchDragging) {
+                    e.preventDefault();
+                    // Find which card we're over
+                    const elementBelow = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+                    const cardBelow = elementBelow?.closest('.player-card');
+                    
+                    // Remove drag-over from all cards
+                    document.querySelectorAll('.player-card').forEach(c => {
+                        c.classList.remove('drag-over');
+                    });
+                    
+                    // Add drag-over to the card we're over (if different)
+                    if (cardBelow && cardBelow !== card) {
+                        cardBelow.classList.add('drag-over');
+                    }
+                }
+            }
+        }, { passive: false });
+        
+        card.addEventListener('touchend', (e) => {
+            if (isTouchDragging) {
+                e.preventDefault();
+                isTouchDragging = false;
+                this.isDragging = false;
+                card.classList.remove('dragging');
+                
+                // Find which card we dropped on
+                const elementBelow = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                const cardBelow = elementBelow?.closest('.player-card');
+                
+                // Remove drag-over from all cards
+                document.querySelectorAll('.player-card').forEach(c => {
+                    c.classList.remove('drag-over');
+                });
+                
+                // Move player if dropped on different card
+                if (cardBelow && cardBelow !== card) {
+                    const targetPlayerId = parseInt(cardBelow.dataset.playerId);
+                    if (this.draggedPlayerId !== null && this.draggedPlayerId !== targetPlayerId) {
+                        this.movePlayer(this.draggedPlayerId, targetPlayerId);
+                    }
+                }
+                
+                this.draggedPlayerId = null;
+            }
+        }, { passive: false });
     }
     
     movePlayer(fromPlayerId, toPlayerId) {
@@ -814,6 +893,14 @@ class SoccerTimer {
     }
     
     // Export/Import Functionality
+    triggerFileInput() {
+        // Clear any previous selection
+        this.importFileInput.value = '';
+        
+        // Trigger file input
+        this.importFileInput.click();
+    }
+    
     exportLists() {
         if (this.savedLists.length === 0) {
             alert('No saved lists to export');
@@ -846,7 +933,12 @@ class SoccerTimer {
     
     importLists(event) {
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            console.log('No file selected');
+            return;
+        }
+        
+        console.log('File selected:', file.name, file.type, file.size);
         
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -903,9 +995,14 @@ class SoccerTimer {
                 }
                 
             } catch (error) {
-                alert('Error reading file. Please make sure it\'s a valid export file.');
+                alert('Error reading file. Please make sure it\'s a valid export file.\n\nError: ' + error.message);
                 console.error('Import error:', error);
             }
+        };
+        
+        reader.onerror = () => {
+            alert('Error reading the file. Please try again.');
+            console.error('FileReader error');
         };
         
         reader.readAsText(file);
