@@ -772,22 +772,36 @@ class SoccerTimer {
             flex-direction: column;
         `;
         
-        // Print button for mobile
+        // Print button with better mobile handling
         const printBtn = document.createElement('button');
-        printBtn.innerHTML = '🖨️ Print';
+        printBtn.innerHTML = '🖨️ Print Now';
         printBtn.style.cssText = `
-            padding: 10px 15px;
+            padding: 12px 18px;
             background: #4CAF50;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
+            margin-bottom: 10px;
         `;
         printBtn.onclick = () => {
-            // Try to trigger print
-            window.print();
+            // Try different print methods for mobile
+            if (this.isMobile()) {
+                // For mobile, try a delayed print approach
+                setTimeout(() => {
+                    try {
+                        window.print();
+                    } catch (e) {
+                        // If print fails, show manual instruction
+                        alert('Print dialog didn\'t open. Please use your browser menu (3 dots) → Print or Share → Print');
+                    }
+                }, 500);
+            } else {
+                // Desktop print
+                window.print();
+            }
         };
         
         // Close button
@@ -806,6 +820,7 @@ class SoccerTimer {
         closeBtn.onclick = () => {
             document.body.removeChild(printContainer);
             document.body.removeChild(controlsContainer);
+            document.body.removeChild(instructionDiv);
         };
         
         controlsContainer.appendChild(printBtn);
@@ -827,7 +842,7 @@ class SoccerTimer {
             font-size: 12px;
             z-index: 10001;
         `;
-        instructionDiv.innerHTML = '📱 <strong>Mobile Print:</strong> Tap "Print" button above, then use your browser\'s print option (Menu → Print or Share → Print)';
+        instructionDiv.innerHTML = '📱 <strong>Print Options:</strong> 1) Try "Print Now" button above, or 2) Use browser menu (3 dots) → Print. If stuck, use browser menu method!';
         
         document.body.appendChild(instructionDiv);
         
