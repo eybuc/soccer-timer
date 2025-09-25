@@ -97,7 +97,11 @@ class SoccerTimer {
         this.importFileInput.addEventListener('change', (e) => this.importLists(e));
         
         // Toggle functionality
-        this.toggleManagementBtn.addEventListener('click', () => this.toggleManagementSection());
+        if (this.toggleManagementBtn) {
+            this.toggleManagementBtn.addEventListener('click', () => this.toggleManagementSection());
+        } else {
+            console.error('Toggle button not found');
+        }
         
         // Modal functionality
         this.closeModal.addEventListener('click', () => this.closeSummaryModal());
@@ -1062,14 +1066,17 @@ class SoccerTimer {
     
     // Toggle Management Section
     toggleManagementSection() {
+        console.log('Toggle clicked, current state:', this.managementVisible);
         this.managementVisible = !this.managementVisible;
         
         if (this.managementVisible) {
             this.managementContent.classList.remove('hidden');
             this.toggleManagementBtn.innerHTML = '👁️ Hide';
+            console.log('Showing management content');
         } else {
             this.managementContent.classList.add('hidden');
             this.toggleManagementBtn.innerHTML = '👁️ Show';
+            console.log('Hiding management content');
         }
         
         // Save toggle state
