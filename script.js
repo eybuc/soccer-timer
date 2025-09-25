@@ -11,6 +11,8 @@ class SoccerTimer {
         this.nextPlayerId = 1;
         this.savedLists = [];
         this.maxActivePlayers = 9;
+        this.isDragging = false;
+        this.draggedPlayerId = null;
         
         this.initializeElements();
         this.bindEvents();
@@ -369,11 +371,14 @@ class SoccerTimer {
         
         // Add click event to toggle active state
         card.addEventListener('click', (e) => {
-            // Don't toggle if clicking on buttons
-            if (!e.target.classList.contains('edit-btn') && !e.target.classList.contains('delete-btn')) {
+            // Don't toggle if clicking on buttons or if dragging
+            if (!e.target.classList.contains('edit-btn') && !e.target.classList.contains('delete-btn') && !this.isDragging) {
                 this.togglePlayerActive(player.id);
             }
         });
+        
+        // Add drag and drop functionality
+        this.addDragAndDrop(card, player.id);
         
         return card;
     }
@@ -732,6 +737,69 @@ class SoccerTimer {
             this.players = [];
             this.savedLists = [];
             this.nextPlayerId = 1;
+        }
+    }
+    
+    // Drag and Drop Functionality
+    addDragAndDrop(card, playerId) {
+        card.draggable = true;
+        
+        card.addEventListener('dragstart', (e) => {
+            this.isDragging = true;
+            this.draggedPlayerId = playerId;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', card.outerHTML);
+        });
+        
+        card.addEventListener('dragend', (e) => {
+            this.isDragging = false;
+            this.draggedPlayerId = null;
+            card.classList.remove('dragging');
+            // Remove drag-over class from all cards
+            document.querySelectorAll('.player-card').forEach(c => {
+                c.classList.remove('drag-over');
+            });
+        });
+        
+        card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            // Only show drop effect if it's a different player
+            if (this.draggedPlayerId !== playerId) {
+                card.classList.add('drag-over');
+            }
+        });
+        
+        card.addEventListener('dragleave', (e) => {
+            card.classList.remove('drag-over');
+        });
+        
+        card.addEventListener('drop', (e) => {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+            
+            if (this.draggedPlayerId !== null && this.draggedPlayerId !== playerId) {
+                this.movePlayer(this.draggedPlayerId, playerId);
+            }
+        });
+    }
+    
+    movePlayer(fromPlayerId, toPlayerId) {
+        const fromIndex = this.players.findIndex(p => p.id === fromPlayerId);
+        const toIndex = this.players.findIndex(p => p.id === toPlayerId);
+        
+        if (fromIndex !== -1 && toIndex !== -1) {
+            // Remove the dragged player from its current position
+            const [movedPlayer] = this.players.splice(fromIndex, 1);
+            
+            // Insert it at the new position
+            this.players.splice(toIndex, 0, movedPlayer);
+            
+            // Update the display
+            this.updatePlayersDisplay();
+            this.saveData();
         }
     }
 }
