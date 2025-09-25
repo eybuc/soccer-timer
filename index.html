@@ -37,6 +37,17 @@
                         <button id="save-list-btn" class="btn btn-secondary">💾 Save List</button>
                         <button id="load-list-btn" class="btn btn-warning">📂 Load List</button>
                     </div>
+                    
+                    <div class="export-import-section">
+                        <div class="export-import-controls">
+                            <button id="export-lists-btn" class="btn btn-info">📤 Export Lists</button>
+                            <button id="import-lists-btn" class="btn btn-info">📥 Import Lists</button>
+                            <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                        </div>
+                        <div class="export-import-hint">
+                            💡 Export lists to share between devices (computer ↔ mobile)
+                        </div>
+                    </div>
                     <div id="saved-lists-container" class="saved-lists-grid">
                         <!-- Saved lists will be added dynamically -->
                     </div>

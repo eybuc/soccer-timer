@@ -188,6 +188,28 @@ body {
     color: #6c757d;
 }
 
+.export-import-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.export-import-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.export-import-hint {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: center;
+    font-style: italic;
+    margin-bottom: 10px;
+}
+
 #player-name-input {
     flex: 1;
     padding: 15px;

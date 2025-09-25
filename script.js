@@ -46,6 +46,11 @@ class SoccerTimer {
         this.loadListBtn = document.getElementById('load-list-btn');
         this.savedListsContainer = document.getElementById('saved-lists-container');
         
+        // Export/Import elements
+        this.exportListsBtn = document.getElementById('export-lists-btn');
+        this.importListsBtn = document.getElementById('import-lists-btn');
+        this.importFileInput = document.getElementById('import-file-input');
+        
         // Modal elements
         this.summaryModal = document.getElementById('summary-modal');
         this.summaryContent = document.getElementById('summary-content');
@@ -78,6 +83,11 @@ class SoccerTimer {
                 this.saveCurrentList();
             }
         });
+        
+        // Export/Import functionality
+        this.exportListsBtn.addEventListener('click', () => this.exportLists());
+        this.importListsBtn.addEventListener('click', () => this.importFileInput.click());
+        this.importFileInput.addEventListener('change', (e) => this.importLists(e));
         
         // Modal functionality
         this.closeModal.addEventListener('click', () => this.closeSummaryModal());
@@ -801,6 +811,104 @@ class SoccerTimer {
             this.updatePlayersDisplay();
             this.saveData();
         }
+    }
+    
+    // Export/Import Functionality
+    exportLists() {
+        if (this.savedLists.length === 0) {
+            alert('No saved lists to export');
+            return;
+        }
+        
+        const exportData = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            savedLists: this.savedLists
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        
+        // Create download link
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `soccer-timer-lists-${new Date().toISOString().split('T')[0]}.json`;
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert(`Exported ${this.savedLists.length} saved lists!`);
+    }
+    
+    importLists(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importData = JSON.parse(e.target.result);
+                
+                if (!importData.savedLists || !Array.isArray(importData.savedLists)) {
+                    alert('Invalid file format. Please select a valid export file.');
+                    return;
+                }
+                
+                if (importData.savedLists.length === 0) {
+                    alert('No saved lists found in the file.');
+                    return;
+                }
+                
+                const existingCount = this.savedLists.length;
+                let addedCount = 0;
+                let skippedCount = 0;
+                
+                importData.savedLists.forEach(importedList => {
+                    // Check if list with same name already exists
+                    const existingIndex = this.savedLists.findIndex(list => 
+                        list.name.toLowerCase() === importedList.name.toLowerCase()
+                    );
+                    
+                    if (existingIndex !== -1) {
+                        // Ask user what to do with duplicate
+                        const shouldReplace = confirm(
+                            `List "${importedList.name}" already exists. Replace it?`
+                        );
+                        if (shouldReplace) {
+                            this.savedLists[existingIndex] = importedList;
+                            addedCount++;
+                        } else {
+                            skippedCount++;
+                        }
+                    } else {
+                        this.savedLists.push(importedList);
+                        addedCount++;
+                    }
+                });
+                
+                this.updateSavedListsDisplay();
+                this.saveData();
+                
+                // Clear the file input
+                event.target.value = '';
+                
+                if (addedCount > 0) {
+                    alert(`Import successful!\nAdded: ${addedCount} lists\nSkipped: ${skippedCount} lists`);
+                } else {
+                    alert('No lists were imported.');
+                }
+                
+            } catch (error) {
+                alert('Error reading file. Please make sure it\'s a valid export file.');
+                console.error('Import error:', error);
+            }
+        };
+        
+        reader.readAsText(file);
     }
 }
 
