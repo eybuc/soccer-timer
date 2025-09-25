@@ -13,6 +13,7 @@ class SoccerTimer {
         this.maxActivePlayers = 9;
         this.isDragging = false;
         this.draggedPlayerId = null;
+        this.managementVisible = true;
         
         this.initializeElements();
         this.bindEvents();
@@ -21,6 +22,7 @@ class SoccerTimer {
         this.updatePlayersDisplay();
         this.updatePlayerCount();
         this.updateSavedListsDisplay();
+        this.loadToggleState();
     }
     
     initializeElements() {
@@ -50,6 +52,10 @@ class SoccerTimer {
         this.exportListsBtn = document.getElementById('export-lists-btn');
         this.importListsBtn = document.getElementById('import-lists-btn');
         this.importFileInput = document.getElementById('import-file-input');
+        
+        // Toggle elements
+        this.toggleManagementBtn = document.getElementById('toggle-management-btn');
+        this.managementContent = document.getElementById('management-content');
         
         // Modal elements
         this.summaryModal = document.getElementById('summary-modal');
@@ -88,6 +94,9 @@ class SoccerTimer {
         this.exportListsBtn.addEventListener('click', () => this.exportLists());
         this.importListsBtn.addEventListener('click', () => this.triggerFileInput());
         this.importFileInput.addEventListener('change', (e) => this.importLists(e));
+        
+        // Toggle functionality
+        this.toggleManagementBtn.addEventListener('click', () => this.toggleManagementSection());
         
         // Modal functionality
         this.closeModal.addEventListener('click', () => this.closeSummaryModal());
@@ -1006,6 +1015,51 @@ class SoccerTimer {
         };
         
         reader.readAsText(file);
+    }
+    
+    // Toggle Management Section
+    toggleManagementSection() {
+        this.managementVisible = !this.managementVisible;
+        
+        if (this.managementVisible) {
+            this.managementContent.classList.remove('hidden');
+            this.toggleManagementBtn.innerHTML = '👁️ Hide';
+        } else {
+            this.managementContent.classList.add('hidden');
+            this.toggleManagementBtn.innerHTML = '👁️ Show';
+        }
+        
+        // Save toggle state
+        this.saveToggleState();
+    }
+    
+    saveToggleState() {
+        try {
+            localStorage.setItem('soccerTimerToggleState', JSON.stringify({
+                managementVisible: this.managementVisible
+            }));
+        } catch (error) {
+            console.warn('Could not save toggle state:', error);
+        }
+    }
+    
+    loadToggleState() {
+        try {
+            const savedState = localStorage.getItem('soccerTimerToggleState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                this.managementVisible = state.managementVisible || true;
+                
+                // Apply the state
+                if (!this.managementVisible) {
+                    this.managementContent.classList.add('hidden');
+                    this.toggleManagementBtn.innerHTML = '👁️ Show';
+                }
+            }
+        } catch (error) {
+            console.warn('Could not load toggle state:', error);
+            this.managementVisible = true;
+        }
     }
 }
 

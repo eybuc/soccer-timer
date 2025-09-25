@@ -113,9 +113,48 @@ body {
 .player-management {
     background: white;
     border-radius: 15px;
-    padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    margin: 0;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.toggle-btn {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.management-content {
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.management-content.hidden {
+    display: none;
 }
 
 .add-player-section {
@@ -587,6 +626,23 @@ body {
     
     .player-card {
         cursor: move;
+    }
+    
+    .section-header {
+        padding: 12px 15px;
+    }
+    
+    .section-header h3 {
+        font-size: 1rem;
+    }
+    
+    .toggle-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .management-content {
+        padding: 15px;
     }
 }
 
