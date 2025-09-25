@@ -62,6 +62,11 @@ class SoccerTimer {
         this.summaryContent = document.getElementById('summary-content');
         this.closeModal = document.querySelector('.close');
         this.printSummaryBtn = document.getElementById('print-summary-btn');
+        
+        // Help modal elements
+        this.helpBtn = document.getElementById('help-btn');
+        this.helpModal = document.getElementById('help-modal');
+        this.helpContent = document.getElementById('help-content');
     }
     
     bindEvents() {
@@ -110,7 +115,13 @@ class SoccerTimer {
             if (e.target === this.summaryModal) {
                 this.closeSummaryModal();
             }
+            if (e.target === this.helpModal) {
+                this.closeHelpModal();
+            }
         });
+        
+        // Help functionality
+        this.helpBtn.addEventListener('click', () => this.showHelp());
         
         // Prevent form submission on Enter in input
         this.playerNameInput.addEventListener('keypress', (e) => {
@@ -160,7 +171,7 @@ class SoccerTimer {
     }
     
     resetAllPlayers() {
-        if (confirm('Reset all player timers to 00:00:00?')) {
+        if (confirm('לאפס את כל טיימרי השחקנים ל-00:00:00?')) {
             this.players.forEach(player => {
                 player.elapsed = 0;
                 player.isRunning = false;
@@ -181,7 +192,7 @@ class SoccerTimer {
     addPlayer() {
         const input = this.playerNameInput.value.trim();
         if (input === '') {
-            alert('Please enter a player name');
+            alert('אנא הכנס שם שחקן');
             return;
         }
         
@@ -192,7 +203,7 @@ class SoccerTimer {
             // Single player
             const name = input;
             if (this.players.some(player => player.name.toLowerCase() === name.toLowerCase())) {
-                alert('A player with this name already exists');
+                alert('שחקן זה כבר קיים');
                 return;
             }
             
@@ -211,20 +222,20 @@ class SoccerTimer {
             this.updatePlayersDisplay();
             this.updatePlayerCount();
             this.saveData();
-            alert(`Player "${name}" added successfully!`);
+            alert(`השחקן "${name}" נוסף בהצלחה!`);
         }
     }
     
     addMultiplePlayers(input = null) {
         const playerInput = input || this.playerNameInput.value.trim();
         if (!playerInput) {
-            alert('Please enter player names separated by commas');
+            alert('אנא הכנס שמות שחקנים מופרדים בפסיקים');
             return;
         }
         
         const names = playerInput.split(',').map(name => name.trim()).filter(name => name.length > 0);
         if (names.length === 0) {
-            alert('Please enter valid player names');
+            alert('אנא הכנס שמות שחקנים תקינים');
             return;
         }
         
@@ -255,16 +266,16 @@ class SoccerTimer {
         this.saveData();
         
         if (addedCount > 0 && skippedCount === 0) {
-            alert(`Added ${addedCount} new players!`);
+            alert(`נוספו ${addedCount} שחקנים חדשים!`);
         } else if (addedCount > 0 && skippedCount > 0) {
-            alert(`Added ${addedCount} new players! ${skippedCount} were skipped (duplicates or invalid names).`);
+            alert(`נוספו ${addedCount} שחקנים חדשים! ${skippedCount} דולגו (שמות כפולים או לא תקינים).`);
         } else {
-            alert('No new players were added. Check for duplicates or invalid names.');
+            alert('לא נוספו שחקנים חדשים. בדוק שמות כפולים או לא תקינים.');
         }
     }
     
     deletePlayer(playerId) {
-        if (confirm('Are you sure you want to delete this player?')) {
+        if (confirm('האם אתה בטוח שברצונך למחוק את השחקן הזה?')) {
             const playerIndex = this.players.findIndex(p => p.id === playerId);
             if (playerIndex !== -1) {
                 const player = this.players[playerIndex];
@@ -285,7 +296,7 @@ class SoccerTimer {
         if (!player.isActive) {
             const activeCount = this.players.filter(p => p.isActive).length;
             if (activeCount >= this.maxActivePlayers) {
-                alert(`Maximum ${this.maxActivePlayers} players can be active at once!`);
+                alert(`מקסימום ${this.maxActivePlayers} שחקנים יכולים להיות פעילים בו-זמנית!`);
                 return;
             }
         }
@@ -308,7 +319,7 @@ class SoccerTimer {
             // Check if name already exists (excluding current player)
             const nameExists = this.players.some(p => p.id !== playerId && p.name.toLowerCase() === newName.trim().toLowerCase());
             if (nameExists) {
-                alert('A player with this name already exists');
+                alert('שחקן עם השם הזה כבר קיים');
                 return false;
             }
             player.name = newName.trim();
@@ -523,7 +534,7 @@ class SoccerTimer {
     }
     
     clearAllData() {
-        if (confirm('Are you sure you want to clear all saved data? This will delete all players and cannot be undone.')) {
+        if (confirm('האם אתה בטוח שברצונך למחוק את כל הנתונים השמורים? זה ימחק את כל השחקנים ולא ניתן לשחזר.')) {
             // Stop all timers
             this.pauseMainTimer();
             this.players.forEach(player => {
@@ -548,7 +559,7 @@ class SoccerTimer {
             this.updateSavedListsDisplay();
             this.updateDisplay();
             
-            alert('All data has been cleared!');
+            alert('כל הנתונים נמחקו!');
         }
     }
     
@@ -557,12 +568,12 @@ class SoccerTimer {
     saveCurrentList() {
         const listName = this.listNameInput.value.trim();
         if (!listName) {
-            alert('Please enter a name for the list');
+            alert('אנא כתוב שם לרשימה');
             return;
         }
         
         if (this.players.length === 0) {
-            alert('No players to save');
+            alert('אין שחקנים לשמירה');
             return;
         }
         
@@ -579,7 +590,7 @@ class SoccerTimer {
         // Check if list name already exists
         const existingIndex = this.savedLists.findIndex(list => list.name.toLowerCase() === listName.toLowerCase());
         if (existingIndex !== -1) {
-            if (confirm(`A list named "${listName}" already exists. Replace it?`)) {
+            if (confirm(`רשימה בשם "${listName}" כבר קיימת. להחליף אותה?`)) {
                 this.savedLists[existingIndex] = newList;
             } else {
                 return;
@@ -591,17 +602,17 @@ class SoccerTimer {
         this.listNameInput.value = '';
         this.updateSavedListsDisplay();
         this.saveData();
-        alert(`List "${listName}" saved successfully!`);
+        alert(`הרשימה "${listName}" נשמרה בהצלחה!`);
     }
     
     showLoadListDialog() {
         if (this.savedLists.length === 0) {
-            alert('No saved lists available');
+            alert('אין רשימות שמורות זמינות');
             return;
         }
         
         const listNames = this.savedLists.map(list => list.name).join('\n');
-        const selectedName = prompt(`Available lists:\n\n${listNames}\n\nEnter the name of the list to load:`);
+        const selectedName = prompt(`רשימות זמינות:\n\n${listNames}\n\nהכנס את שם הרשימה לטעינה:`);
         
         if (selectedName) {
             this.loadList(selectedName.trim());
@@ -611,11 +622,11 @@ class SoccerTimer {
     loadList(listName) {
         const list = this.savedLists.find(l => l.name.toLowerCase() === listName.toLowerCase());
         if (!list) {
-            alert(`List "${listName}" not found`);
+            alert(`הרשימה "${listName}" לא נמצאה`);
             return;
         }
         
-        if (confirm(`Load list "${list.name}"? This will replace all current players.`)) {
+        if (confirm(`לטעון את הרשימה "${list.name}"? זה יחליף את כל השחקנים הנוכחיים.`)) {
             // Clear current players
             this.players.forEach(player => {
                 clearInterval(player.interval);
@@ -639,7 +650,7 @@ class SoccerTimer {
             this.updatePlayersDisplay();
             this.updatePlayerCount();
             this.saveData();
-            alert(`Loaded ${list.players.length} players from "${list.name}"`);
+            alert(`נטענו ${list.players.length} שחקנים מהרשימה "${list.name}"`);
         }
     }
     
@@ -647,7 +658,7 @@ class SoccerTimer {
         const activeCount = this.players.filter(p => p.isActive).length;
         const totalCount = this.players.length;
         
-        this.playerCountDisplay.textContent = `${activeCount}/${totalCount} selected`;
+        this.playerCountDisplay.textContent = `${activeCount}/${totalCount} נבחרו`;
         
         if (activeCount >= this.maxActivePlayers) {
             this.playerCountDisplay.classList.add('full');
@@ -664,7 +675,7 @@ class SoccerTimer {
             listItem.className = 'saved-list-item';
             listItem.innerHTML = `
                 <div class="saved-list-name">${this.escapeHtml(list.name)}</div>
-                <div class="saved-list-count">${list.players.length} players</div>
+                <div class="saved-list-count">${list.players.length} שחקנים</div>
             `;
             
             listItem.addEventListener('click', () => {
@@ -677,7 +688,7 @@ class SoccerTimer {
     
     showSummary() {
         if (this.players.length === 0) {
-            alert('No players to show in summary');
+            alert('אין שחקנים להצגה בסיכום');
             return;
         }
         
@@ -705,9 +716,97 @@ class SoccerTimer {
         this.summaryModal.style.display = 'none';
     }
     
+    showHelp() {
+        this.helpContent.innerHTML = this.createHelpContent();
+        this.helpModal.style.display = 'block';
+    }
+    
+    closeHelpModal() {
+        this.helpModal.style.display = 'none';
+    }
+    
+    createHelpContent() {
+        return `
+            <div class="help-section">
+                <h3>🎯 איך להתחיל</h3>
+                <ol>
+                    <li><strong>הוסף שחקנים:</strong> כתוב שמות בשדה "הכנס שם שחקן" ולחץ "הוסף שחקן(ים)"</li>
+                    <li><strong>התחל משחק:</strong> לחץ "התחל" כדי להתחיל את הטיימר הראשי</li>
+                    <li><strong>הפעל שחקנים:</strong> לחץ על כרטיסי השחקנים כדי להפעיל אותם (מקסימום 9)</li>
+                    <li><strong>צפה בסיכום:</strong> לחץ "סיכום" כדי לראות את זמני כל השחקנים</li>
+                </ol>
+            </div>
+            
+            <div class="help-section">
+                <h3>⏱️ ניהול זמן</h3>
+                <ul>
+                    <li><strong>התחל/השהיה:</strong> כפתורי "התחל" ו"השהיה" שולטים בטיימר הראשי</li>
+                    <li><strong>איפוס:</strong> כפתור "איפוס" מאפס את הטיימר הראשי</li>
+                    <li><strong>שחקנים פעילים:</strong> רק שחקנים פעילים (ירוקים) מודדים זמן</li>
+                    <li><strong>איפוס שחקנים:</strong> כפתור "איפוס שחקנים" מאפס את כל זמני השחקנים</li>
+                </ul>
+            </div>
+            
+            <div class="help-section">
+                <h3>👥 ניהול שחקנים</h3>
+                <ul>
+                    <li><strong>הוספה:</strong> כתוב שם אחד או מספר שמות מופרדים בפסיק</li>
+                    <li><strong>עריכה:</strong> לחץ "ערוך" ליד שם השחקן</li>
+                    <li><strong>מחיקה:</strong> לחץ "מחק" ליד שם השחקן</li>
+                    <li><strong>הפעלה:</strong> לחץ על כרטיס השחקן להפעלה/השבתה</li>
+                    <li><strong>סידור:</strong> גרור כרטיסי שחקנים לסידור מחדש</li>
+                </ul>
+            </div>
+            
+            <div class="help-section">
+                <h3>💾 שמירת רשימות</h3>
+                <ul>
+                    <li><strong>שמירה:</strong> כתוב שם לרשימה ולחץ "שמור רשימה"</li>
+                    <li><strong>טעינה:</strong> לחץ "טען רשימה" ובחר רשימה מהרשימה</li>
+                    <li><strong>ייצוא:</strong> לחץ "ייצא רשימות" להורדת קובץ JSON</li>
+                    <li><strong>ייבוא:</strong> לחץ "ייבא רשימות" לטעינת קובץ JSON</li>
+                </ul>
+            </div>
+            
+            <div class="help-section">
+                <h3>📊 סיכום והדפסה</h3>
+                <ul>
+                    <li><strong>סיכום:</strong> לחץ "סיכום" לראות את כל השחקנים עם זמניהם</li>
+                    <li><strong>הדפסה:</strong> לחץ "הדפס" בסיכום להדפסה</li>
+                    <li><strong>העתקה (מובייל):</strong> לחץ "העתק טקסט" להעתקה ללוח</li>
+                    <li><strong>שיתוף:</strong> הטקסט מוכן לשיתוף בווטסאפ, טלגרם וכו'</li>
+                </ul>
+            </div>
+            
+            <div class="help-section">
+                <h3>📱 שימוש במובייל</h3>
+                <ul>
+                    <li><strong>גרירה:</strong> החזק על כרטיס שחקן וגרור לסידור</li>
+                    <li><strong>הדפסה:</strong> השתמש בהעתקה ללוח במקום הדפסה</li>
+                    <li><strong>ממשק מותאם:</strong> הממשק מותאם אוטומטית למסכים קטנים</li>
+                </ul>
+            </div>
+            
+            <div class="help-section">
+                <h3>💡 טיפים</h3>
+                <ul>
+                    <li>השתמש בשמות קצרים (עד 20 תווים) לנוחות</li>
+                    <li>ייצא את הרשימות שלך באופן קבוע לגיבוי</li>
+                    <li>כל השינויים נשמרים אוטומטית בדפדפן</li>
+                    <li>השתמש בהסתרה/הצגה של אזור ניהול השחקנים</li>
+                </ul>
+            </div>
+            
+            <div class="help-footer">
+                <p><strong>גרסה 2.1</strong> - תמיכה משופרת במובייל והדפסה</p>
+                <p>נהנה מהמשחק! ⚽</p>
+            </div>
+        `;
+    }
+    
     printSummary() {
         if (this.players.length === 0) {
-            alert('No players to print in summary');
+            alert('אין שחקנים להדפסה בסיכום');
             return;
         }
         
@@ -774,7 +873,7 @@ class SoccerTimer {
         
         // Print button with copy-to-clipboard fallback for mobile
         const printBtn = document.createElement('button');
-        printBtn.innerHTML = this.isMobile() ? '📋 Copy Text' : '🖨️ Print';
+        printBtn.innerHTML = this.isMobile() ? '📋 העתק טקסט' : '🖨️ הדפס';
         printBtn.style.cssText = `
             padding: 12px 18px;
             background: #4CAF50;
@@ -798,7 +897,7 @@ class SoccerTimer {
         
         // Close button
         const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = '✕ Close';
+        closeBtn.innerHTML = '✕ סגור';
         closeBtn.style.cssText = `
             padding: 10px 15px;
             background: #f44336;
@@ -834,7 +933,7 @@ class SoccerTimer {
             font-size: 12px;
             z-index: 10001;
         `;
-        instructionDiv.innerHTML = this.isMobile() ? '📱 <strong>Mobile:</strong> Use "Copy Text" button above to copy summary, then paste in any app!' : '🖨️ <strong>Desktop:</strong> Use "Print" button above or browser menu (3 dots) → Print';
+        instructionDiv.innerHTML = this.isMobile() ? '📱 <strong>מובייל:</strong> השתמש בכפתור "העתק טקסט" למעלה להעתקת הסיכום, ואז הדבק בכל אפליקציה!' : '🖨️ <strong>מחשב:</strong> השתמש בכפתור "הדפס" למעלה או בתפריט הדפדפן (3 נקודות) → הדפס';
         
         document.body.appendChild(instructionDiv);
         
@@ -864,8 +963,8 @@ class SoccerTimer {
         
         return `
             <div class="print-header">
-                <h1>⚽ Soccer Game Summary</h1>
-                <div class="print-date">${currentDate} at ${currentTime}</div>
+                <h1>⚽ סיכום משחק כדורגל</h1>
+                <div class="print-date">${currentDate} בשעה ${currentTime}</div>
             </div>
             ${playersHtml}
         `;
@@ -876,8 +975,8 @@ class SoccerTimer {
         const currentDate = new Date().toLocaleDateString();
         const currentTime = new Date().toLocaleTimeString();
         
-        let text = `⚽ Soccer Game Summary\n`;
-        text += `Date: ${currentDate} at ${currentTime}\n\n`;
+        let text = `⚽ סיכום משחק כדורגל\n`;
+        text += `תאריך: ${currentDate} בשעה ${currentTime}\n\n`;
         
         sortedPlayers.forEach((player, index) => {
             const timeStr = this.formatTime(player.elapsed);
@@ -887,7 +986,7 @@ class SoccerTimer {
         // Try to copy to clipboard
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(() => {
-                alert('📋 Summary copied to clipboard!\n\nYou can now paste it in:\n• WhatsApp/Telegram\n• Notes app\n• Email\n• Any text app');
+                alert('📋 הסיכום הועתק ללוח!\n\nעכשיו תוכל להדביק אותו ב:\n• ווטסאפ/טלגרם\n• אפליקציית הערות\n• אימייל\n• כל אפליקציית טקסט');
             }).catch(() => {
                 this.showTextFallback(text);
             });
@@ -929,7 +1028,7 @@ class SoccerTimer {
         `;
         
         const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = '✕ Close';
+        closeBtn.innerHTML = '✕ סגור';
         closeBtn.style.cssText = `
             position: fixed;
             top: 20px;
@@ -959,7 +1058,7 @@ class SoccerTimer {
         textArea.select();
         textArea.setSelectionRange(0, 99999);
         
-        alert('📋 Select all text (Ctrl+A or Cmd+A) and copy (Ctrl+C or Cmd+C), then paste where you need it!');
+        alert('📋 בחר את כל הטקסט (Ctrl+A או Cmd+A) והעתק (Ctrl+C או Cmd+C), ואז הדבק איפה שאתה צריך!');
     }
     
     // Update saveData to include saved lists
@@ -1167,7 +1266,7 @@ class SoccerTimer {
     
     exportLists() {
         if (this.savedLists.length === 0) {
-            alert('No saved lists to export');
+            alert('אין רשימות שמורות לייצוא');
             return;
         }
         
@@ -1192,7 +1291,7 @@ class SoccerTimer {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        alert(`Exported ${this.savedLists.length} saved lists!`);
+        alert(`יוצאו ${this.savedLists.length} רשימות שמורות!`);
     }
     
     importLists(event) {
@@ -1210,12 +1309,12 @@ class SoccerTimer {
                 const importData = JSON.parse(e.target.result);
                 
                 if (!importData.savedLists || !Array.isArray(importData.savedLists)) {
-                    alert('Invalid file format. Please select a valid export file.');
+                    alert('פורמט קובץ לא תקין. אנא בחר קובץ ייצוא תקין.');
                     return;
                 }
                 
                 if (importData.savedLists.length === 0) {
-                    alert('No saved lists found in the file.');
+                    alert('לא נמצאו רשימות שמורות בקובץ.');
                     return;
                 }
                 
@@ -1232,7 +1331,7 @@ class SoccerTimer {
                     if (existingIndex !== -1) {
                         // Ask user what to do with duplicate
                         const shouldReplace = confirm(
-                            `List "${importedList.name}" already exists. Replace it?`
+                            `הרשימה "${importedList.name}" כבר קיימת. להחליף אותה?`
                         );
                         if (shouldReplace) {
                             this.savedLists[existingIndex] = importedList;
@@ -1253,19 +1352,19 @@ class SoccerTimer {
                 event.target.value = '';
                 
                 if (addedCount > 0) {
-                    alert(`Import successful!\nAdded: ${addedCount} lists\nSkipped: ${skippedCount} lists`);
+                    alert(`הייבוא הצליח!\nנוספו: ${addedCount} רשימות\nדולגו: ${skippedCount} רשימות`);
                 } else {
-                    alert('No lists were imported.');
+                    alert('לא יובאו רשימות.');
                 }
                 
             } catch (error) {
-                alert('Error reading file. Please make sure it\'s a valid export file.\n\nError: ' + error.message);
+                alert('שגיאה בקריאת הקובץ. אנא ודא שזה קובץ ייצוא תקין.\n\nשגיאה: ' + error.message);
                 console.error('Import error:', error);
             }
         };
         
         reader.onerror = () => {
-            alert('Error reading the file. Please try again.');
+            alert('שגיאה בקריאת הקובץ. אנא נסה שוב.');
             console.error('FileReader error');
         };
         
@@ -1279,11 +1378,11 @@ class SoccerTimer {
         
         if (this.managementVisible) {
             this.managementContent.classList.remove('hidden');
-            this.toggleManagementBtn.innerHTML = '👁️ Hide';
+            this.toggleManagementBtn.innerHTML = '👁️ הסתר';
             console.log('Showing management content');
         } else {
             this.managementContent.classList.add('hidden');
-            this.toggleManagementBtn.innerHTML = '👁️ Show';
+            this.toggleManagementBtn.innerHTML = '👁️ הצג';
             console.log('Hiding management content');
         }
         
@@ -1311,7 +1410,7 @@ class SoccerTimer {
                 // Apply the state
                 if (!this.managementVisible) {
                     this.managementContent.classList.add('hidden');
-                    this.toggleManagementBtn.innerHTML = '👁️ Show';
+                    this.toggleManagementBtn.innerHTML = '👁️ הצג';
                 }
             }
         } catch (error) {
