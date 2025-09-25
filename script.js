@@ -714,19 +714,142 @@ class SoccerTimer {
         // Create print-friendly HTML
         const printHtml = this.createPrintHTML();
         
-        // Create a temporary container for printing
+        // For mobile, open in new window/tab
+        if (this.isMobile()) {
+            this.printMobile(printHtml);
+        } else {
+            // Desktop printing
+            const printContainer = document.createElement('div');
+            printContainer.className = 'print-summary';
+            printContainer.innerHTML = printHtml;
+            
+            document.body.appendChild(printContainer);
+            window.print();
+            document.body.removeChild(printContainer);
+        }
+    }
+    
+    isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+               window.innerWidth <= 768;
+    }
+    
+    printMobile(printHtml) {
+        // Create a new window for printing on mobile
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Soccer Game Summary</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 20px;
+                            background: white;
+                            color: black;
+                        }
+                        .print-header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            border-bottom: 2px solid #333;
+                            padding-bottom: 15px;
+                        }
+                        .print-header h1 {
+                            margin: 0 0 10px 0;
+                            font-size: 24px;
+                            color: #333;
+                        }
+                        .print-date {
+                            font-size: 14px;
+                            color: #666;
+                        }
+                        .print-player {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 8px 0;
+                            border-bottom: 1px solid #eee;
+                        }
+                        .print-player:last-child {
+                            border-bottom: 2px solid #333;
+                        }
+                        .print-player-name {
+                            font-weight: bold;
+                            color: #333;
+                        }
+                        .print-player-time {
+                            font-family: 'Courier New', monospace;
+                            font-weight: bold;
+                            color: #333;
+                        }
+                        @media print {
+                            body { margin: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${printHtml}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.onafterprint = function() {
+                                window.close();
+                            };
+                        };
+                    </script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        } else {
+            // Fallback: show in modal and let user manually print
+            alert('Please use your browser\'s print function (Ctrl+P or Menu → Print)');
+            this.showPrintableSummary();
+        }
+    }
+    
+    showPrintableSummary() {
+        // Create a simple printable version in the current window
+        const printHtml = this.createPrintHTML();
         const printContainer = document.createElement('div');
-        printContainer.className = 'print-summary';
+        printContainer.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 10000;
+            padding: 20px;
+            overflow: auto;
+        `;
         printContainer.innerHTML = printHtml;
         
-        // Add to body temporarily
         document.body.appendChild(printContainer);
         
-        // Print
-        window.print();
+        // Add close button
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = 'Close';
+        closeBtn.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 10001;
+            padding: 10px 20px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        `;
+        closeBtn.onclick = () => {
+            document.body.removeChild(printContainer);
+            document.body.removeChild(closeBtn);
+        };
         
-        // Remove temporary container
-        document.body.removeChild(printContainer);
+        document.body.appendChild(closeBtn);
     }
     
     createPrintHTML() {
