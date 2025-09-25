@@ -26,19 +26,52 @@
 
         <div class="player-management">
             <div class="add-player-section">
-                <input type="text" id="player-name-input" placeholder="Enter player name" maxlength="20">
-                <button id="add-player-btn" class="btn btn-success">+ Add Player</button>
+                <input type="text" id="player-name-input" placeholder="Enter player name(s) - single name or comma separated: John, Sarah, Mike" maxlength="200">
+                <button id="add-player-btn" class="btn btn-success">+ Add Player(s)</button>
                 <button id="clear-data-btn" class="btn btn-danger" title="Clear all saved data">🗑️ Clear All</button>
+            </div>
+                
+                <div class="saved-lists-section">
+                    <div class="lists-controls">
+                        <input type="text" id="list-name-input" placeholder="Save current players as..." maxlength="30">
+                        <button id="save-list-btn" class="btn btn-secondary">💾 Save List</button>
+                        <button id="load-list-btn" class="btn btn-warning">📂 Load List</button>
+                    </div>
+                    <div id="saved-lists-container" class="saved-lists-grid">
+                        <!-- Saved lists will be added dynamically -->
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="players-section">
             <div class="players-header">
-                <h2>Players</h2>
-                <button id="reset-players-btn" class="btn btn-warning">🔄 Reset Players</button>
+                <div class="players-title-section">
+                    <h2>Players</h2>
+                    <span id="player-count" class="player-count">0/9 selected</span>
+                </div>
+                <div class="players-controls">
+                    <button id="summary-btn" class="btn btn-info">📊 Summary</button>
+                    <button id="reset-players-btn" class="btn btn-warning">🔄 Reset Players</button>
+                </div>
             </div>
             <div id="players-container" class="players-grid">
                 <!-- Players will be added dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Modal -->
+    <div id="summary-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📊 Game Summary</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="summary-content">
+                    <!-- Summary content will be added dynamically -->
+                </div>
             </div>
         </div>
     </div>

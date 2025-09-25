@@ -105,6 +105,11 @@ body {
     color: white;
 }
 
+.btn-info {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+}
+
 .player-management {
     background: white;
     border-radius: 15px;
@@ -118,6 +123,69 @@ body {
     gap: 15px;
     align-items: center;
     flex-wrap: wrap;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 15px;
+}
+
+
+.saved-lists-section {
+    margin-top: 15px;
+}
+
+.lists-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.lists-controls input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    min-width: 150px;
+}
+
+.lists-controls input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.saved-lists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.saved-list-item {
+    background: #f8f9fa;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.saved-list-item:hover {
+    background: #e9ecef;
+    border-color: #17a2b8;
+}
+
+.saved-list-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #2d3748;
+}
+
+.saved-list-count {
+    font-size: 0.8rem;
+    color: #6c757d;
 }
 
 #player-name-input {
@@ -152,10 +220,38 @@ body {
     gap: 10px;
 }
 
+.players-title-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .players-header h2 {
     color: #2d3748;
     font-size: 1.4rem;
     margin: 0;
+}
+
+.player-count {
+    background: #667eea;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 80px;
+    text-align: center;
+}
+
+.player-count.full {
+    background: #f44336;
+}
+
+.players-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .players-grid {
@@ -438,5 +534,126 @@ body {
     #player-name-input {
         padding: 8px;
         font-size: 0.85rem;
+    }
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close:hover {
+    color: #ffcccb;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.summary-player {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin: 8px 0;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #4CAF50;
+}
+
+.summary-player-name {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.summary-player-time {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: #4CAF50;
+    font-size: 1.1rem;
+}
+
+.summary-total {
+    border-top: 2px solid #e2e8f0;
+    padding-top: 15px;
+    margin-top: 15px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+    color: #2d3748;
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+    }
+    
+    .modal-header {
+        padding: 15px;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
+    
+    .summary-player {
+        padding: 8px;
+        margin: 6px 0;
+    }
+    
+    .summary-player-name {
+        font-size: 0.9rem;
+    }
+    
+    .summary-player-time {
+        font-size: 1rem;
     }
 }

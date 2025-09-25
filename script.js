@@ -9,12 +9,16 @@ class SoccerTimer {
         
         this.players = [];
         this.nextPlayerId = 1;
+        this.savedLists = [];
+        this.maxActivePlayers = 9;
         
         this.initializeElements();
         this.bindEvents();
         this.loadSavedData();
         this.updateDisplay();
         this.updatePlayersDisplay();
+        this.updatePlayerCount();
+        this.updateSavedListsDisplay();
     }
     
     initializeElements() {
@@ -29,7 +33,21 @@ class SoccerTimer {
         this.addPlayerBtn = document.getElementById('add-player-btn');
         this.clearDataBtn = document.getElementById('clear-data-btn');
         this.resetPlayersBtn = document.getElementById('reset-players-btn');
+        this.summaryBtn = document.getElementById('summary-btn');
         this.playersContainer = document.getElementById('players-container');
+        this.playerCountDisplay = document.getElementById('player-count');
+        
+        
+        // Saved lists elements
+        this.listNameInput = document.getElementById('list-name-input');
+        this.saveListBtn = document.getElementById('save-list-btn');
+        this.loadListBtn = document.getElementById('load-list-btn');
+        this.savedListsContainer = document.getElementById('saved-lists-container');
+        
+        // Modal elements
+        this.summaryModal = document.getElementById('summary-modal');
+        this.summaryContent = document.getElementById('summary-content');
+        this.closeModal = document.querySelector('.close');
     }
     
     bindEvents() {
@@ -42,9 +60,28 @@ class SoccerTimer {
         this.addPlayerBtn.addEventListener('click', () => this.addPlayer());
         this.clearDataBtn.addEventListener('click', () => this.clearAllData());
         this.resetPlayersBtn.addEventListener('click', () => this.resetAllPlayers());
+        this.summaryBtn.addEventListener('click', () => this.showSummary());
         this.playerNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.addPlayer();
+            }
+        });
+        
+        
+        // Saved lists functionality
+        this.saveListBtn.addEventListener('click', () => this.saveCurrentList());
+        this.loadListBtn.addEventListener('click', () => this.showLoadListDialog());
+        this.listNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.saveCurrentList();
+            }
+        });
+        
+        // Modal functionality
+        this.closeModal.addEventListener('click', () => this.closeSummaryModal());
+        window.addEventListener('click', (e) => {
+            if (e.target === this.summaryModal) {
+                this.closeSummaryModal();
             }
         });
         
@@ -103,6 +140,7 @@ class SoccerTimer {
                 clearInterval(player.interval);
             });
             this.updatePlayersDisplay();
+            this.updatePlayerCount();
             this.saveData();
         }
     }
@@ -114,31 +152,88 @@ class SoccerTimer {
     
     // Player Management Functions
     addPlayer() {
-        const name = this.playerNameInput.value.trim();
-        if (name === '') {
+        const input = this.playerNameInput.value.trim();
+        if (input === '') {
             alert('Please enter a player name');
             return;
         }
         
-        if (this.players.some(player => player.name.toLowerCase() === name.toLowerCase())) {
-            alert('A player with this name already exists');
+        // Check if input contains commas (multiple players)
+        if (input.includes(',')) {
+            this.addMultiplePlayers(input);
+        } else {
+            // Single player
+            const name = input;
+            if (this.players.some(player => player.name.toLowerCase() === name.toLowerCase())) {
+                alert('A player with this name already exists');
+                return;
+            }
+            
+            const player = {
+                id: this.nextPlayerId++,
+                name: name,
+                elapsed: 0,
+                startTime: 0,
+                isRunning: false,
+                isActive: false,
+                interval: null
+            };
+            
+            this.players.push(player);
+            this.playerNameInput.value = '';
+            this.updatePlayersDisplay();
+            this.updatePlayerCount();
+            this.saveData();
+            alert(`Player "${name}" added successfully!`);
+        }
+    }
+    
+    addMultiplePlayers(input = null) {
+        const playerInput = input || this.playerNameInput.value.trim();
+        if (!playerInput) {
+            alert('Please enter player names separated by commas');
             return;
         }
         
-        const player = {
-            id: this.nextPlayerId++,
-            name: name,
-            elapsed: 0,
-            startTime: 0,
-            isRunning: false,
-            isActive: false,
-            interval: null
-        };
+        const names = playerInput.split(',').map(name => name.trim()).filter(name => name.length > 0);
+        if (names.length === 0) {
+            alert('Please enter valid player names');
+            return;
+        }
         
-        this.players.push(player);
+        let addedCount = 0;
+        let skippedCount = 0;
+        
+        names.forEach(name => {
+            if (name.length <= 20 && !this.players.some(player => player.name.toLowerCase() === name.toLowerCase())) {
+                const player = {
+                    id: this.nextPlayerId++,
+                    name: name,
+                    elapsed: 0,
+                    startTime: 0,
+                    isRunning: false,
+                    isActive: false,
+                    interval: null
+                };
+                this.players.push(player);
+                addedCount++;
+            } else {
+                skippedCount++;
+            }
+        });
+        
         this.playerNameInput.value = '';
         this.updatePlayersDisplay();
+        this.updatePlayerCount();
         this.saveData();
+        
+        if (addedCount > 0 && skippedCount === 0) {
+            alert(`Added ${addedCount} new players!`);
+        } else if (addedCount > 0 && skippedCount > 0) {
+            alert(`Added ${addedCount} new players! ${skippedCount} were skipped (duplicates or invalid names).`);
+        } else {
+            alert('No new players were added. Check for duplicates or invalid names.');
+        }
     }
     
     deletePlayer(playerId) {
@@ -149,6 +244,7 @@ class SoccerTimer {
                 clearInterval(player.interval);
                 this.players.splice(playerIndex, 1);
                 this.updatePlayersDisplay();
+                this.updatePlayerCount();
                 this.saveData();
             }
         }
@@ -157,6 +253,15 @@ class SoccerTimer {
     togglePlayerActive(playerId) {
         const player = this.players.find(p => p.id === playerId);
         if (!player) return;
+        
+        // If trying to activate a player, check if we're at the limit
+        if (!player.isActive) {
+            const activeCount = this.players.filter(p => p.isActive).length;
+            if (activeCount >= this.maxActivePlayers) {
+                alert(`Maximum ${this.maxActivePlayers} players can be active at once!`);
+                return;
+            }
+        }
         
         player.isActive = !player.isActive;
         
@@ -167,6 +272,7 @@ class SoccerTimer {
         }
         
         this.updatePlayersDisplay();
+        this.updatePlayerCount();
     }
     
     editPlayerName(playerId, newName) {
@@ -180,6 +286,7 @@ class SoccerTimer {
             }
             player.name = newName.trim();
             this.updatePlayersDisplay();
+            this.updatePlayerCount();
             this.saveData();
             return true;
         }
@@ -395,6 +502,7 @@ class SoccerTimer {
             
             // Clear data
             this.players = [];
+            this.savedLists = [];
             this.nextPlayerId = 1;
             
             // Clear localStorage
@@ -406,9 +514,224 @@ class SoccerTimer {
             
             // Update display
             this.updatePlayersDisplay();
+            this.updatePlayerCount();
+            this.updateSavedListsDisplay();
             this.updateDisplay();
             
             alert('All data has been cleared!');
+        }
+    }
+    
+    // New Advanced Features
+    
+    saveCurrentList() {
+        const listName = this.listNameInput.value.trim();
+        if (!listName) {
+            alert('Please enter a name for the list');
+            return;
+        }
+        
+        if (this.players.length === 0) {
+            alert('No players to save');
+            return;
+        }
+        
+        const playerNames = this.players.map(p => p.name);
+        const listId = Date.now().toString();
+        
+        const newList = {
+            id: listId,
+            name: listName,
+            players: playerNames,
+            created: new Date().toLocaleDateString()
+        };
+        
+        // Check if list name already exists
+        const existingIndex = this.savedLists.findIndex(list => list.name.toLowerCase() === listName.toLowerCase());
+        if (existingIndex !== -1) {
+            if (confirm(`A list named "${listName}" already exists. Replace it?`)) {
+                this.savedLists[existingIndex] = newList;
+            } else {
+                return;
+            }
+        } else {
+            this.savedLists.push(newList);
+        }
+        
+        this.listNameInput.value = '';
+        this.updateSavedListsDisplay();
+        this.saveData();
+        alert(`List "${listName}" saved successfully!`);
+    }
+    
+    showLoadListDialog() {
+        if (this.savedLists.length === 0) {
+            alert('No saved lists available');
+            return;
+        }
+        
+        const listNames = this.savedLists.map(list => list.name).join('\n');
+        const selectedName = prompt(`Available lists:\n\n${listNames}\n\nEnter the name of the list to load:`);
+        
+        if (selectedName) {
+            this.loadList(selectedName.trim());
+        }
+    }
+    
+    loadList(listName) {
+        const list = this.savedLists.find(l => l.name.toLowerCase() === listName.toLowerCase());
+        if (!list) {
+            alert(`List "${listName}" not found`);
+            return;
+        }
+        
+        if (confirm(`Load list "${list.name}"? This will replace all current players.`)) {
+            // Clear current players
+            this.players.forEach(player => {
+                clearInterval(player.interval);
+            });
+            this.players = [];
+            
+            // Add players from saved list
+            list.players.forEach(name => {
+                const player = {
+                    id: this.nextPlayerId++,
+                    name: name,
+                    elapsed: 0,
+                    startTime: 0,
+                    isRunning: false,
+                    isActive: false,
+                    interval: null
+                };
+                this.players.push(player);
+            });
+            
+            this.updatePlayersDisplay();
+            this.updatePlayerCount();
+            this.saveData();
+            alert(`Loaded ${list.players.length} players from "${list.name}"`);
+        }
+    }
+    
+    updatePlayerCount() {
+        const activeCount = this.players.filter(p => p.isActive).length;
+        const totalCount = this.players.length;
+        
+        this.playerCountDisplay.textContent = `${activeCount}/${totalCount} selected`;
+        
+        if (activeCount >= this.maxActivePlayers) {
+            this.playerCountDisplay.classList.add('full');
+        } else {
+            this.playerCountDisplay.classList.remove('full');
+        }
+    }
+    
+    updateSavedListsDisplay() {
+        this.savedListsContainer.innerHTML = '';
+        
+        this.savedLists.forEach(list => {
+            const listItem = document.createElement('div');
+            listItem.className = 'saved-list-item';
+            listItem.innerHTML = `
+                <div class="saved-list-name">${this.escapeHtml(list.name)}</div>
+                <div class="saved-list-count">${list.players.length} players</div>
+            `;
+            
+            listItem.addEventListener('click', () => {
+                this.loadList(list.name);
+            });
+            
+            this.savedListsContainer.appendChild(listItem);
+        });
+    }
+    
+    showSummary() {
+        if (this.players.length === 0) {
+            alert('No players to show in summary');
+            return;
+        }
+        
+        let totalTime = 0;
+        let summaryHtml = '';
+        
+        // Sort players by elapsed time (descending)
+        const sortedPlayers = [...this.players].sort((a, b) => b.elapsed - a.elapsed);
+        
+        sortedPlayers.forEach(player => {
+            const timeStr = this.formatTime(player.elapsed);
+            totalTime += player.elapsed;
+            
+            summaryHtml += `
+                <div class="summary-player">
+                    <span class="summary-player-name">${this.escapeHtml(player.name)}</span>
+                    <span class="summary-player-time">${timeStr}</span>
+                </div>
+            `;
+        });
+        
+        summaryHtml += `
+            <div class="summary-total">
+                Total Playing Time: ${this.formatTime(totalTime)}
+            </div>
+        `;
+        
+        this.summaryContent.innerHTML = summaryHtml;
+        this.summaryModal.style.display = 'block';
+    }
+    
+    closeSummaryModal() {
+        this.summaryModal.style.display = 'none';
+    }
+    
+    // Update saveData to include saved lists
+    saveData() {
+        const dataToSave = {
+            players: this.players.map(player => ({
+                id: player.id,
+                name: player.name,
+                elapsed: player.elapsed,
+                isActive: player.isActive
+            })),
+            nextPlayerId: this.nextPlayerId,
+            savedLists: this.savedLists
+        };
+        
+        try {
+            localStorage.setItem('soccerTimerData', JSON.stringify(dataToSave));
+        } catch (error) {
+            console.warn('Could not save data to localStorage:', error);
+        }
+    }
+    
+    // Update loadSavedData to include saved lists
+    loadSavedData() {
+        try {
+            const savedData = localStorage.getItem('soccerTimerData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                
+                // Restore players
+                this.players = data.players.map(player => ({
+                    ...player,
+                    startTime: 0,
+                    isRunning: false,
+                    interval: null
+                }));
+                
+                // Restore next player ID
+                this.nextPlayerId = data.nextPlayerId || this.players.length + 1;
+                
+                // Restore saved lists
+                this.savedLists = data.savedLists || [];
+                
+                console.log(`Loaded ${this.players.length} saved players and ${this.savedLists.length} saved lists`);
+            }
+        } catch (error) {
+            console.warn('Could not load data from localStorage:', error);
+            // If there's an error, start fresh
+            this.players = [];
+            this.savedLists = [];
+            this.nextPlayerId = 1;
         }
     }
 }
