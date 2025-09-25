@@ -28,6 +28,7 @@ class SoccerTimer {
         this.playerNameInput = document.getElementById('player-name-input');
         this.addPlayerBtn = document.getElementById('add-player-btn');
         this.clearDataBtn = document.getElementById('clear-data-btn');
+        this.resetPlayersBtn = document.getElementById('reset-players-btn');
         this.playersContainer = document.getElementById('players-container');
     }
     
@@ -40,6 +41,7 @@ class SoccerTimer {
         // Player management
         this.addPlayerBtn.addEventListener('click', () => this.addPlayer());
         this.clearDataBtn.addEventListener('click', () => this.clearAllData());
+        this.resetPlayersBtn.addEventListener('click', () => this.resetAllPlayers());
         this.playerNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.addPlayer();
@@ -91,14 +93,18 @@ class SoccerTimer {
         this.pauseMainTimer();
         this.mainTimer.elapsed = 0;
         this.updateDisplay();
-        
-        // Reset all player timers
-        this.players.forEach(player => {
-            player.elapsed = 0;
-            player.isRunning = false;
-            clearInterval(player.interval);
-        });
-        this.updatePlayersDisplay();
+    }
+    
+    resetAllPlayers() {
+        if (confirm('Reset all player timers to 00:00:00?')) {
+            this.players.forEach(player => {
+                player.elapsed = 0;
+                player.isRunning = false;
+                clearInterval(player.interval);
+            });
+            this.updatePlayersDisplay();
+            this.saveData();
+        }
     }
     
     updateMainTimer() {
