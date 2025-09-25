@@ -735,79 +735,9 @@ class SoccerTimer {
     }
     
     printMobile(printHtml) {
-        // Create a new window for printing on mobile
-        const printWindow = window.open('', '_blank');
-        if (printWindow) {
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Soccer Game Summary</title>
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            margin: 20px;
-                            background: white;
-                            color: black;
-                        }
-                        .print-header {
-                            text-align: center;
-                            margin-bottom: 30px;
-                            border-bottom: 2px solid #333;
-                            padding-bottom: 15px;
-                        }
-                        .print-header h1 {
-                            margin: 0 0 10px 0;
-                            font-size: 24px;
-                            color: #333;
-                        }
-                        .print-date {
-                            font-size: 14px;
-                            color: #666;
-                        }
-                        .print-player {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            padding: 8px 0;
-                            border-bottom: 1px solid #eee;
-                        }
-                        .print-player:last-child {
-                            border-bottom: 2px solid #333;
-                        }
-                        .print-player-name {
-                            font-weight: bold;
-                            color: #333;
-                        }
-                        .print-player-time {
-                            font-family: 'Courier New', monospace;
-                            font-weight: bold;
-                            color: #333;
-                        }
-                        @media print {
-                            body { margin: 0; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${printHtml}
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                            window.onafterprint = function() {
-                                window.close();
-                            };
-                        };
-                    </script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        } else {
-            // Fallback: show in modal and let user manually print
-            alert('Please use your browser\'s print function (Ctrl+P or Menu → Print)');
-            this.showPrintableSummary();
-        }
+        // For mobile, show the printable version directly in the current window
+        // This avoids popup issues and stuck preview screens
+        this.showPrintableSummary();
     }
     
     showPrintableSummary() {
@@ -824,32 +754,89 @@ class SoccerTimer {
             z-index: 10000;
             padding: 20px;
             overflow: auto;
+            font-family: Arial, sans-serif;
         `;
         printContainer.innerHTML = printHtml;
         
         document.body.appendChild(printContainer);
         
-        // Add close button
-        const closeBtn = document.createElement('button');
-        closeBtn.innerHTML = 'Close';
-        closeBtn.style.cssText = `
+        // Add mobile-friendly controls
+        const controlsContainer = document.createElement('div');
+        controlsContainer.style.cssText = `
             position: fixed;
             top: 10px;
             right: 10px;
             z-index: 10001;
-            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        `;
+        
+        // Print button for mobile
+        const printBtn = document.createElement('button');
+        printBtn.innerHTML = '🖨️ Print';
+        printBtn.style.cssText = `
+            padding: 10px 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        `;
+        printBtn.onclick = () => {
+            // Try to trigger print
+            window.print();
+        };
+        
+        // Close button
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✕ Close';
+        closeBtn.style.cssText = `
+            padding: 10px 15px;
             background: #f44336;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
         `;
         closeBtn.onclick = () => {
             document.body.removeChild(printContainer);
-            document.body.removeChild(closeBtn);
+            document.body.removeChild(controlsContainer);
         };
         
-        document.body.appendChild(closeBtn);
+        controlsContainer.appendChild(printBtn);
+        controlsContainer.appendChild(closeBtn);
+        document.body.appendChild(controlsContainer);
+        
+        // Add print instruction for mobile
+        const instructionDiv = document.createElement('div');
+        instructionDiv.style.cssText = `
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: #2196F3;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 12px;
+            z-index: 10001;
+        `;
+        instructionDiv.innerHTML = '📱 <strong>Mobile Print:</strong> Tap "Print" button above, then use your browser\'s print option (Menu → Print or Share → Print)';
+        
+        document.body.appendChild(instructionDiv);
+        
+        // Remove instruction after 10 seconds
+        setTimeout(() => {
+            if (document.body.contains(instructionDiv)) {
+                document.body.removeChild(instructionDiv);
+            }
+        }, 10000);
     }
     
     createPrintHTML() {
