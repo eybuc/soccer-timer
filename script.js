@@ -772,9 +772,9 @@ class SoccerTimer {
             flex-direction: column;
         `;
         
-        // Print button with better mobile handling
+        // Print button with copy-to-clipboard fallback for mobile
         const printBtn = document.createElement('button');
-        printBtn.innerHTML = '🖨️ Print Now';
+        printBtn.innerHTML = this.isMobile() ? '📋 Copy Text' : '🖨️ Print';
         printBtn.style.cssText = `
             padding: 12px 18px;
             background: #4CAF50;
@@ -787,17 +787,9 @@ class SoccerTimer {
             margin-bottom: 10px;
         `;
         printBtn.onclick = () => {
-            // Try different print methods for mobile
             if (this.isMobile()) {
-                // For mobile, try a delayed print approach
-                setTimeout(() => {
-                    try {
-                        window.print();
-                    } catch (e) {
-                        // If print fails, show manual instruction
-                        alert('Print dialog didn\'t open. Please use your browser menu (3 dots) → Print or Share → Print');
-                    }
-                }, 500);
+                // For mobile, copy text to clipboard instead of printing
+                this.copySummaryToClipboard();
             } else {
                 // Desktop print
                 window.print();
@@ -842,7 +834,7 @@ class SoccerTimer {
             font-size: 12px;
             z-index: 10001;
         `;
-        instructionDiv.innerHTML = '📱 <strong>Print Options:</strong> 1) Try "Print Now" button above, or 2) Use browser menu (3 dots) → Print. If stuck, use browser menu method!';
+        instructionDiv.innerHTML = this.isMobile() ? '📱 <strong>Mobile:</strong> Use "Copy Text" button above to copy summary, then paste in any app!' : '🖨️ <strong>Desktop:</strong> Use "Print" button above or browser menu (3 dots) → Print';
         
         document.body.appendChild(instructionDiv);
         
@@ -877,6 +869,97 @@ class SoccerTimer {
             </div>
             ${playersHtml}
         `;
+    }
+
+    copySummaryToClipboard() {
+        const sortedPlayers = [...this.players].sort((a, b) => b.elapsed - a.elapsed);
+        const currentDate = new Date().toLocaleDateString();
+        const currentTime = new Date().toLocaleTimeString();
+        
+        let text = `⚽ Soccer Game Summary\n`;
+        text += `Date: ${currentDate} at ${currentTime}\n\n`;
+        
+        sortedPlayers.forEach((player, index) => {
+            const timeStr = this.formatTime(player.elapsed);
+            text += `${index + 1}. ${player.name} - ${timeStr}\n`;
+        });
+        
+        // Try to copy to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('📋 Summary copied to clipboard!\n\nYou can now paste it in:\n• WhatsApp/Telegram\n• Notes app\n• Email\n• Any text app');
+            }).catch(() => {
+                this.showTextFallback(text);
+            });
+        } else {
+            this.showTextFallback(text);
+        }
+    }
+
+    showTextFallback(text) {
+        // Create a text area with the summary for manual copying
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 60%;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: white;
+            z-index: 10002;
+            resize: none;
+        `;
+        
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10001;
+        `;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✕ Close';
+        closeBtn.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10003;
+        `;
+        
+        closeBtn.onclick = () => {
+            document.body.removeChild(overlay);
+            document.body.removeChild(textArea);
+            document.body.removeChild(closeBtn);
+        };
+        
+        document.body.appendChild(overlay);
+        document.body.appendChild(textArea);
+        document.body.appendChild(closeBtn);
+        
+        // Select all text for easy copying
+        textArea.select();
+        textArea.setSelectionRange(0, 99999);
+        
+        alert('📋 Select all text (Ctrl+A or Cmd+A) and copy (Ctrl+C or Cmd+C), then paste where you need it!');
     }
     
     // Update saveData to include saved lists
