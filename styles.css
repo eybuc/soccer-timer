@@ -681,6 +681,12 @@ body {
     border-radius: 15px 15px 0 0;
 }
 
+.modal-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .modal-header h2 {
     margin: 0;
     font-size: 1.5rem;
@@ -764,5 +770,68 @@ body {
     
     .summary-player-time {
         font-size: 1rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    .print-summary, .print-summary * {
+        visibility: visible;
+    }
+    
+    .print-summary {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+        color: black;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+    }
+    
+    .print-header {
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 15px;
+    }
+    
+    .print-header h1 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+        color: #333;
+    }
+    
+    .print-date {
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .print-player {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .print-player:last-child {
+        border-bottom: 2px solid #333;
+    }
+    
+    .print-player-name {
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .print-player-time {
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        color: #333;
     }
 }

@@ -61,6 +61,7 @@ class SoccerTimer {
         this.summaryModal = document.getElementById('summary-modal');
         this.summaryContent = document.getElementById('summary-content');
         this.closeModal = document.querySelector('.close');
+        this.printSummaryBtn = document.getElementById('print-summary-btn');
     }
     
     bindEvents() {
@@ -100,6 +101,7 @@ class SoccerTimer {
         
         // Modal functionality
         this.closeModal.addEventListener('click', () => this.closeSummaryModal());
+        this.printSummaryBtn.addEventListener('click', () => this.printSummary());
         window.addEventListener('click', (e) => {
             if (e.target === this.summaryModal) {
                 this.closeSummaryModal();
@@ -675,7 +677,6 @@ class SoccerTimer {
             return;
         }
         
-        let totalTime = 0;
         let summaryHtml = '';
         
         // Sort players by elapsed time (descending)
@@ -683,7 +684,6 @@ class SoccerTimer {
         
         sortedPlayers.forEach(player => {
             const timeStr = this.formatTime(player.elapsed);
-            totalTime += player.elapsed;
             
             summaryHtml += `
                 <div class="summary-player">
@@ -693,18 +693,61 @@ class SoccerTimer {
             `;
         });
         
-        summaryHtml += `
-            <div class="summary-total">
-                Total Playing Time: ${this.formatTime(totalTime)}
-            </div>
-        `;
-        
         this.summaryContent.innerHTML = summaryHtml;
         this.summaryModal.style.display = 'block';
     }
     
     closeSummaryModal() {
         this.summaryModal.style.display = 'none';
+    }
+    
+    printSummary() {
+        if (this.players.length === 0) {
+            alert('No players to print in summary');
+            return;
+        }
+        
+        // Create print-friendly HTML
+        const printHtml = this.createPrintHTML();
+        
+        // Create a temporary container for printing
+        const printContainer = document.createElement('div');
+        printContainer.className = 'print-summary';
+        printContainer.innerHTML = printHtml;
+        
+        // Add to body temporarily
+        document.body.appendChild(printContainer);
+        
+        // Print
+        window.print();
+        
+        // Remove temporary container
+        document.body.removeChild(printContainer);
+    }
+    
+    createPrintHTML() {
+        const sortedPlayers = [...this.players].sort((a, b) => b.elapsed - a.elapsed);
+        const currentDate = new Date().toLocaleDateString();
+        const currentTime = new Date().toLocaleTimeString();
+        
+        let playersHtml = '';
+        sortedPlayers.forEach(player => {
+            const timeStr = this.formatTime(player.elapsed);
+            playersHtml += `
+                <div class="print-player">
+                    <span class="print-player-name">${this.escapeHtml(player.name)}</span>
+                    <span class="print-player-time">${timeStr}</span>
+                </div>
+            `;
+        });
+        
+        return `
+            <div class="print-header">
+                <h1>⚽ Soccer Game Summary</h1>
+                <div class="print-date">${currentDate} at ${currentTime}</div>
+            </div>
+            ${playersHtml}
+        `;
     }
     
     // Update saveData to include saved lists
