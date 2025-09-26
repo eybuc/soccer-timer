@@ -67,6 +67,13 @@ class SoccerTimer {
         this.helpBtn = document.getElementById('help-btn');
         this.helpModal = document.getElementById('help-modal');
         this.helpContent = document.getElementById('help-content');
+        
+        // Floating timer elements
+        this.floatingTimer = document.getElementById('floating-timer');
+        this.floatingTimerDisplay = document.getElementById('floating-main-timer');
+        this.floatingStartBtn = document.getElementById('floating-start-btn');
+        this.floatingPauseBtn = document.getElementById('floating-pause-btn');
+        this.floatingResetBtn = document.getElementById('floating-reset-btn');
     }
     
     bindEvents() {
@@ -123,6 +130,14 @@ class SoccerTimer {
         // Help functionality
         this.helpBtn.addEventListener('click', () => this.showHelp());
         
+        // Floating timer functionality
+        this.floatingStartBtn.addEventListener('click', () => this.startMainTimer());
+        this.floatingPauseBtn.addEventListener('click', () => this.pauseMainTimer());
+        this.floatingResetBtn.addEventListener('click', () => this.resetMainTimer());
+        
+        // Show/hide floating timer on scroll
+        window.addEventListener('scroll', () => this.handleScroll());
+        
         // Prevent form submission on Enter in input
         this.playerNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -143,6 +158,8 @@ class SoccerTimer {
             // Update button states
             this.startBtn.disabled = true;
             this.pauseBtn.disabled = false;
+            this.floatingStartBtn.disabled = true;
+            this.floatingPauseBtn.disabled = false;
             
             // Start all active player timers
             this.startActivePlayerTimers();
@@ -158,6 +175,8 @@ class SoccerTimer {
             // Update button states
             this.startBtn.disabled = false;
             this.pauseBtn.disabled = true;
+            this.floatingStartBtn.disabled = false;
+            this.floatingPauseBtn.disabled = true;
             
             // Pause all active player timers
             this.pauseActivePlayerTimers();
@@ -168,6 +187,10 @@ class SoccerTimer {
         this.pauseMainTimer();
         this.mainTimer.elapsed = 0;
         this.updateDisplay();
+        
+        // Ensure floating buttons are in sync
+        this.floatingStartBtn.disabled = false;
+        this.floatingPauseBtn.disabled = true;
     }
     
     resetAllPlayers() {
@@ -378,7 +401,9 @@ class SoccerTimer {
     
     // Display Functions
     updateDisplay() {
-        this.mainTimerDisplay.textContent = this.formatTime(this.mainTimer.elapsed);
+        const timeString = this.formatTime(this.mainTimer.elapsed);
+        this.mainTimerDisplay.textContent = timeString;
+        this.floatingTimerDisplay.textContent = timeString;
     }
     
     updatePlayersDisplay() {
@@ -723,6 +748,18 @@ class SoccerTimer {
     
     closeHelpModal() {
         this.helpModal.style.display = 'none';
+    }
+    
+    handleScroll() {
+        const mainTimerSection = document.querySelector('.main-timer-section');
+        const mainTimerRect = mainTimerSection.getBoundingClientRect();
+        const isMainTimerVisible = mainTimerRect.bottom > 0;
+        
+        if (isMainTimerVisible) {
+            this.floatingTimer.classList.remove('show');
+        } else {
+            this.floatingTimer.classList.add('show');
+        }
     }
     
     createHelpContent() {
