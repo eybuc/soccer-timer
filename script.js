@@ -136,6 +136,9 @@ class SoccerTimer {
         // Show/hide floating timer on scroll
         window.addEventListener('scroll', () => this.handleScroll());
         
+        // Hide floating timer on window resize (desktop)
+        window.addEventListener('resize', () => this.handleScroll());
+        
         // Prevent form submission on Enter in input
         this.playerNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -745,9 +748,15 @@ class SoccerTimer {
     }
     
     handleScroll() {
+        // Only show floating timer on mobile devices
+        if (window.innerWidth > 768) {
+            this.floatingTimer.classList.remove('show');
+            return;
+        }
+        
         const mainTimerSection = document.querySelector('.main-timer-section');
         const mainTimerRect = mainTimerSection.getBoundingClientRect();
-        const isMainTimerVisible = mainTimerRect.bottom > 100; // Show floating when main timer is 100px out of view
+        const isMainTimerVisible = mainTimerRect.bottom > 50; // Show floating when main timer is 50px out of view
         
         if (isMainTimerVisible) {
             this.floatingTimer.classList.remove('show');

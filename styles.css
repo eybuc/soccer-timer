@@ -978,99 +978,73 @@ body {
     }
 }
 
-/* Floating Timer Styles */
+/* Floating Timer Styles - Hidden by default, only show on mobile when scrolled */
 .floating-timer {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: white;
-    border-radius: 15px;
-    padding: 15px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    z-index: 1000;
     display: none;
-    min-width: 180px;
-    border: 2px solid #e2e8f0;
-}
-
-.floating-timer.show {
-    display: block;
-}
-
-.floating-timer-display {
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.floating-timer-display span {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #2d3748;
-    font-family: 'Courier New', monospace;
-}
-
-.floating-timer-controls {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.floating-btn {
-    padding: 8px 12px;
-    font-size: 0.9rem;
-    min-width: 60px;
-    border-radius: 8px;
-    flex: 1;
 }
 
 /* Mobile adjustments for floating timer */
 @media (max-width: 768px) {
     .floating-timer {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        min-width: auto;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: white;
+        border-radius: 15px;
         padding: 12px;
-        position: fixed !important;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        z-index: 1000;
         display: none;
+        min-width: 160px;
+        border: 2px solid #e2e8f0;
     }
     
     .floating-timer.show {
-        display: block !important;
+        display: block;
+    }
+    
+    .floating-timer-display {
+        text-align: center;
+        margin-bottom: 8px;
     }
     
     .floating-timer-display span {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2d3748;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .floating-timer-controls {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
     }
     
     .floating-btn {
         padding: 10px 14px; /* Increased by 2px as requested */
-        font-size: 0.95rem; /* Slightly larger font */
-        min-width: 80px; /* Increased for better touch targets */
+        font-size: 0.9rem;
+        min-width: 70px;
+        border-radius: 8px;
+        flex: 1;
     }
 }
 
 @media (max-width: 480px) {
     .floating-timer {
-        top: 8px;
-        right: 8px;
-        left: 8px;
+        top: 15px;
+        left: 15px;
         padding: 10px;
-        position: fixed !important;
-        display: none;
-    }
-    
-    .floating-timer.show {
-        display: block !important;
+        min-width: 140px;
     }
     
     .floating-timer-display span {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
     
     .floating-btn {
         padding: 8px 12px; /* Increased by 2px as requested */
-        font-size: 0.9rem;
-        min-width: 70px; /* Increased for better touch targets */
+        font-size: 0.85rem;
+        min-width: 60px;
     }
 }
