@@ -989,7 +989,7 @@ body {
     box-shadow: 0 8px 25px rgba(0,0,0,0.15);
     z-index: 1000;
     display: none;
-    min-width: 200px;
+    min-width: 180px;
     border: 2px solid #e2e8f0;
 }
 
@@ -1011,15 +1011,16 @@ body {
 
 .floating-timer-controls {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     justify-content: center;
 }
 
 .floating-btn {
     padding: 8px 12px;
     font-size: 0.9rem;
-    min-width: 40px;
+    min-width: 60px;
     border-radius: 8px;
+    flex: 1;
 }
 
 /* Mobile adjustments for floating timer */
@@ -1030,6 +1031,12 @@ body {
         left: 10px;
         min-width: auto;
         padding: 12px;
+        position: fixed !important;
+        display: none;
+    }
+    
+    .floating-timer.show {
+        display: block !important;
     }
     
     .floating-timer-display span {
@@ -1039,7 +1046,7 @@ body {
     .floating-btn {
         padding: 10px 14px; /* Increased by 2px as requested */
         font-size: 0.95rem; /* Slightly larger font */
-        min-width: 44px; /* Increased by 2px */
+        min-width: 80px; /* Increased for better touch targets */
     }
 }
 
@@ -1049,6 +1056,12 @@ body {
         right: 8px;
         left: 8px;
         padding: 10px;
+        position: fixed !important;
+        display: none;
+    }
+    
+    .floating-timer.show {
+        display: block !important;
     }
     
     .floating-timer-display span {
@@ -1058,6 +1071,6 @@ body {
     .floating-btn {
         padding: 8px 12px; /* Increased by 2px as requested */
         font-size: 0.9rem;
-        min-width: 42px; /* Increased by 2px */
+        min-width: 70px; /* Increased for better touch targets */
     }
 }

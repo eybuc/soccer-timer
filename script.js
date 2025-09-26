@@ -73,7 +73,6 @@ class SoccerTimer {
         this.floatingTimerDisplay = document.getElementById('floating-main-timer');
         this.floatingStartBtn = document.getElementById('floating-start-btn');
         this.floatingPauseBtn = document.getElementById('floating-pause-btn');
-        this.floatingResetBtn = document.getElementById('floating-reset-btn');
     }
     
     bindEvents() {
@@ -133,7 +132,6 @@ class SoccerTimer {
         // Floating timer functionality
         this.floatingStartBtn.addEventListener('click', () => this.startMainTimer());
         this.floatingPauseBtn.addEventListener('click', () => this.pauseMainTimer());
-        this.floatingResetBtn.addEventListener('click', () => this.resetMainTimer());
         
         // Show/hide floating timer on scroll
         window.addEventListener('scroll', () => this.handleScroll());
@@ -187,10 +185,6 @@ class SoccerTimer {
         this.pauseMainTimer();
         this.mainTimer.elapsed = 0;
         this.updateDisplay();
-        
-        // Ensure floating buttons are in sync
-        this.floatingStartBtn.disabled = false;
-        this.floatingPauseBtn.disabled = true;
     }
     
     resetAllPlayers() {
@@ -753,7 +747,7 @@ class SoccerTimer {
     handleScroll() {
         const mainTimerSection = document.querySelector('.main-timer-section');
         const mainTimerRect = mainTimerSection.getBoundingClientRect();
-        const isMainTimerVisible = mainTimerRect.bottom > 0;
+        const isMainTimerVisible = mainTimerRect.bottom > 100; // Show floating when main timer is 100px out of view
         
         if (isMainTimerVisible) {
             this.floatingTimer.classList.remove('show');
