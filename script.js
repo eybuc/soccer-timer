@@ -406,7 +406,14 @@ class SoccerTimer {
     updatePlayersDisplay() {
         this.playersContainer.innerHTML = '';
         
-        this.players.forEach(player => {
+        // Sort players: active players first, then inactive
+        const sortedPlayers = [...this.players].sort((a, b) => {
+            if (a.isActive && !b.isActive) return -1;
+            if (!a.isActive && b.isActive) return 1;
+            return 0;
+        });
+        
+        sortedPlayers.forEach(player => {
             const playerCard = this.createPlayerCard(player);
             this.playersContainer.appendChild(playerCard);
         });
@@ -899,16 +906,18 @@ class SoccerTimer {
         
         document.body.appendChild(printContainer);
         
-        // Add mobile-friendly controls
+        // Add mobile-friendly controls at the bottom
         const controlsContainer = document.createElement('div');
         controlsContainer.style.cssText = `
             position: fixed;
-            top: 10px;
-            right: 10px;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 10001;
             display: flex;
             gap: 10px;
-            flex-direction: column;
+            flex-direction: row;
+            justify-content: center;
         `;
         
         // Print button with copy-to-clipboard fallback for mobile
@@ -923,7 +932,7 @@ class SoccerTimer {
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin: 0;
         `;
         printBtn.onclick = () => {
             if (this.isMobile()) {
@@ -939,14 +948,15 @@ class SoccerTimer {
         const closeBtn = document.createElement('button');
         closeBtn.innerHTML = '✕ סגור';
         closeBtn.style.cssText = `
-            padding: 10px 15px;
+            padding: 12px 18px;
             background: #f44336;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
+            margin: 0;
         `;
         closeBtn.onclick = () => {
             document.body.removeChild(printContainer);
@@ -962,7 +972,7 @@ class SoccerTimer {
         const instructionDiv = document.createElement('div');
         instructionDiv.style.cssText = `
             position: fixed;
-            bottom: 10px;
+            bottom: 80px;
             left: 10px;
             right: 10px;
             background: #2196F3;
@@ -973,7 +983,7 @@ class SoccerTimer {
             font-size: 12px;
             z-index: 10001;
         `;
-        instructionDiv.innerHTML = this.isMobile() ? '📱 <strong>מובייל:</strong> השתמש בכפתור "העתק טקסט" למעלה להעתקת הסיכום, ואז הדבק בכל אפליקציה!' : '🖨️ <strong>מחשב:</strong> השתמש בכפתור "הדפס" למעלה או בתפריט הדפדפן (3 נקודות) → הדפס';
+        instructionDiv.innerHTML = this.isMobile() ? '📱 <strong>מובייל:</strong> השתמש בכפתור "העתק טקסט" למטה להעתקת הסיכום, ואז הדבק בכל אפליקציה!' : '🖨️ <strong>מחשב:</strong> השתמש בכפתור "הדפס" למטה או בתפריט הדפדפן (3 נקודות) → הדפס';
         
         document.body.appendChild(instructionDiv);
         
