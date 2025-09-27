@@ -7,6 +7,12 @@ class SoccerTimer {
             interval: null
         };
         
+        // Formation update interval
+        this.formationUpdateInterval = null;
+        
+        // Formation type
+        this.formationType = 'circular';
+        
         this.players = [];
         this.nextPlayerId = 1;
         this.savedLists = [];
@@ -68,6 +74,11 @@ class SoccerTimer {
         this.helpModal = document.getElementById('help-modal');
         this.helpContent = document.getElementById('help-content');
         
+        // Formation modal elements
+        this.formationBtn = document.getElementById('formation-btn');
+        this.formationModal = document.getElementById('formation-modal');
+        this.formationContent = document.getElementById('formation-content');
+        
         // Floating timer elements
         this.floatingTimer = document.getElementById('floating-timer');
         this.floatingTimerDisplay = document.getElementById('floating-main-timer');
@@ -124,10 +135,16 @@ class SoccerTimer {
             if (e.target === this.helpModal) {
                 this.closeHelpModal();
             }
+            if (e.target === this.formationModal) {
+                this.closeFormationModal();
+            }
         });
         
         // Help functionality
         this.helpBtn.addEventListener('click', () => this.showHelp());
+        
+        // Formation functionality
+        this.formationBtn.addEventListener('click', () => this.showFormation());
         
         // Floating timer functionality
         this.floatingStartBtn.addEventListener('click', () => this.startMainTimer());
@@ -154,6 +171,7 @@ class SoccerTimer {
             this.mainTimer.isRunning = true;
             this.mainTimer.interval = setInterval(() => {
                 this.updateMainTimer();
+                this.updateFormationTimerDisplay();
             }, 100);
             
             // Update button states
@@ -206,6 +224,22 @@ class SoccerTimer {
     updateMainTimer() {
         this.mainTimer.elapsed = Date.now() - this.mainTimer.startTime;
         this.updateDisplay();
+        
+        // Ensure all active players have their timers running
+        this.ensureActivePlayerTimers();
+    }
+    
+    ensureActivePlayerTimers() {
+        if (this.mainTimer.isRunning) {
+            this.players.forEach(player => {
+                if (player.isActive && !player.isRunning) {
+                    this.startPlayerTimer(player.id);
+                } else if (!player.isActive && player.isRunning) {
+                    // Stop timer for inactive players
+                    this.stopPlayerTimer(player.id);
+                }
+            });
+        }
     }
     
     // Player Management Functions
@@ -323,14 +357,21 @@ class SoccerTimer {
         
         player.isActive = !player.isActive;
         
-        if (player.isActive && this.mainTimer.isRunning) {
+        // Always start/stop timer based on active state and main timer state
+        if (player.isActive && this.mainTimer.isRunning && !player.isRunning) {
             this.startPlayerTimer(playerId);
-        } else if (!player.isActive) {
+        } else if (!player.isActive && player.isRunning) {
             this.stopPlayerTimer(playerId);
         }
         
         this.updatePlayersDisplay();
         this.updatePlayerCount();
+        
+        // Update formation modal if it's open
+        if (this.formationModal.style.display === 'block') {
+            this.updateFormationDisplay();
+            this.saveFormationState();
+        }
     }
     
     editPlayerName(playerId, newName) {
@@ -356,6 +397,8 @@ class SoccerTimer {
         const player = this.players.find(p => p.id === playerId);
         if (!player || player.isRunning) return;
         
+        // Always start from current time minus current elapsed time
+        // This preserves the player's existing elapsed time when starting
         player.startTime = Date.now() - player.elapsed;
         player.isRunning = true;
         player.interval = setInterval(() => {
@@ -752,6 +795,519 @@ class SoccerTimer {
     
     closeHelpModal() {
         this.helpModal.style.display = 'none';
+    }
+    
+    showFormation() {
+        this.formationContent.innerHTML = this.createFormationHTML();
+        this.formationModal.style.display = 'block';
+        this.setupDragAndDrop();
+        this.restoreFormationState();
+        
+        // Start formation update interval
+        this.startFormationUpdateInterval();
+    }
+    
+    startFormationUpdateInterval() {
+        // Clear any existing formation interval
+        if (this.formationUpdateInterval) {
+            clearInterval(this.formationUpdateInterval);
+        }
+        
+        // Update formation display every 100ms when modal is open
+        this.formationUpdateInterval = setInterval(() => {
+            if (this.formationModal.style.display === 'block') {
+                this.updateFormationDisplay();
+            } else {
+                clearInterval(this.formationUpdateInterval);
+                this.formationUpdateInterval = null;
+            }
+        }, 100);
+    }
+    
+    saveFormationState() {
+        const positions = {};
+        const positionElements = this.formationContent.querySelectorAll('.position-player');
+        
+        positionElements.forEach(pos => {
+            const player = pos.querySelector('.formation-player');
+            if (player) {
+                const positionId = pos.dataset.positionId;
+                const playerId = player.dataset.playerId;
+                positions[positionId] = playerId;
+            }
+        });
+        
+        localStorage.setItem('formationState', JSON.stringify(positions));
+    }
+    
+    restoreFormationState() {
+        const savedState = localStorage.getItem('formationState');
+        if (!savedState) return;
+        
+        try {
+            const positions = JSON.parse(savedState);
+            const positionElements = this.formationContent.querySelectorAll('.position-player');
+            
+            positionElements.forEach(pos => {
+                const positionId = pos.dataset.positionId;
+                const playerId = positions[positionId];
+                
+                if (playerId) {
+                    const player = this.players.find(p => p.id == playerId);
+                    if (player) {
+                        this.addPlayerToPosition(pos, player);
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Error restoring formation state:', e);
+        }
+    }
+    
+    setupDragAndDrop() {
+        // Setup formation timer controls
+        const formationStartBtn = this.formationContent.querySelector('#formation-start-btn');
+        const formationPauseBtn = this.formationContent.querySelector('#formation-pause-btn');
+        
+        if (formationStartBtn) {
+            formationStartBtn.addEventListener('click', () => {
+                this.startMainTimer();
+                this.updateFormationTimerDisplay();
+            });
+        }
+        
+        if (formationPauseBtn) {
+            formationPauseBtn.addEventListener('click', () => {
+                this.pauseMainTimer();
+                this.updateFormationTimerDisplay();
+            });
+        }
+        
+        // Setup formation selector
+        const formationSelector = this.formationContent.querySelector('#formation-type-selector');
+        if (formationSelector) {
+            formationSelector.value = this.formationType;
+            formationSelector.addEventListener('change', (e) => {
+                this.formationType = e.target.value;
+                this.saveFormationState(); // Save current state before switching
+                this.switchFormationType();
+            });
+        }
+        
+        // Setup drag and drop for pool players and formation players
+        const allDraggablePlayers = this.formationContent.querySelectorAll('.pool-player, .formation-player');
+        allDraggablePlayers.forEach(player => {
+            player.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', player.dataset.playerId);
+                player.classList.add('dragging');
+            });
+            
+            player.addEventListener('dragend', (e) => {
+                player.classList.remove('dragging');
+            });
+        });
+        
+        // Setup drop zones for positions
+        const positions = this.formationContent.querySelectorAll('.position-player');
+        positions.forEach(position => {
+            position.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                position.classList.add('drag-over');
+            });
+            
+            position.addEventListener('dragleave', (e) => {
+                position.classList.remove('drag-over');
+            });
+            
+            position.addEventListener('drop', (e) => {
+                e.preventDefault();
+                position.classList.remove('drag-over');
+                
+                const playerId = e.dataTransfer.getData('text/plain');
+                const player = this.players.find(p => p.id == playerId);
+                
+                if (player) {
+                    // Check if there's already a player in this position
+                    const existingPlayer = position.querySelector('.formation-player');
+                    
+                    if (existingPlayer) {
+                        // If there's an existing player, replace it
+                        const existingPlayerId = existingPlayer.dataset.playerId;
+                        const existingPlayerObj = this.players.find(p => p.id == existingPlayerId);
+                        
+                        // Deactivate the existing player
+                        if (existingPlayerObj) {
+                            existingPlayerObj.isActive = false;
+                            this.stopPlayerTimer(existingPlayerId);
+                            // Force update the player display to reflect the change
+                            this.updatePlayersDisplay();
+                        }
+                        
+                        // Move existing player back to pool
+                        this.movePlayerToPool(existingPlayerId);
+                    }
+                    
+                    // Remove player from any existing position (if they were already on pitch)
+                    this.removePlayerFromFormation(playerId);
+                    
+                    // Add player to new position and auto-activate
+                    this.addPlayerToPosition(position, player);
+                    
+                    // Auto-activate the player when placed on pitch
+                    if (!player.isActive) {
+                        const activeCount = this.players.filter(p => p.isActive).length;
+                        if (activeCount < this.maxActivePlayers) {
+                            player.isActive = true;
+                        }
+                    }
+                    
+                    // Start timer for the player if main timer is running and player is active
+                    if (player.isActive && this.mainTimer.isRunning && !player.isRunning) {
+                        this.startPlayerTimer(playerId);
+                    }
+                    
+                    // Update displays
+                    this.updatePlayersDisplay();
+                    this.updatePlayerCount();
+                    this.updateFormationDisplay();
+                    
+                    // Save formation state
+                    this.saveFormationState();
+                }
+            });
+        });
+        
+        // Setup click handlers for activation
+        const allPlayers = this.formationContent.querySelectorAll('[data-player-id]');
+        allPlayers.forEach(player => {
+            player.addEventListener('click', (e) => {
+                const playerId = parseInt(player.dataset.playerId);
+                this.togglePlayerActive(playerId);
+            });
+        });
+    }
+    
+    removePlayerFromFormation(playerId) {
+        const existingPositions = this.formationContent.querySelectorAll('.position-player');
+        existingPositions.forEach(pos => {
+            const player = pos.querySelector(`[data-player-id="${playerId}"]`);
+            if (player) {
+                pos.innerHTML = '<div class="player-placeholder">ריק</div>';
+            }
+        });
+    }
+    
+    addPlayerToPosition(position, player) {
+        const timeStr = this.formatTime(player.elapsed);
+        position.innerHTML = `
+            <div class="formation-player ${player.isActive ? 'active' : ''}" 
+                 data-player-id="${player.id}"
+                 draggable="true">
+                <div class="player-name">${this.escapeHtml(player.name)}</div>
+                <div class="player-time">${timeStr}</div>
+            </div>
+        `;
+        
+        // Add click handler for the new player
+        const newPlayer = position.querySelector('.formation-player');
+        newPlayer.addEventListener('click', (e) => {
+            this.togglePlayerActive(player.id);
+        });
+    }
+    
+    movePlayerToPool(playerId) {
+        // Update the player in the pool
+        const poolPlayer = this.formationContent.querySelector(`.pool-player[data-player-id="${playerId}"]`);
+        if (poolPlayer) {
+            const player = this.players.find(p => p.id == playerId);
+            if (player) {
+                poolPlayer.className = `pool-player ${player.isActive ? 'active' : ''}`;
+                const timeStr = this.formatTime(player.elapsed);
+                poolPlayer.innerHTML = `
+                    <div class="player-name">${this.escapeHtml(player.name)}</div>
+                    <div class="player-time">${timeStr}</div>
+                `;
+            }
+        }
+        
+        // Update the main players display as well
+        this.updatePlayersDisplay();
+    }
+    
+    updateFormationDisplay() {
+        // Update formation timer display
+        this.updateFormationTimerDisplay();
+        
+        // Update all formation players to reflect current state
+        const formationPlayers = this.formationContent.querySelectorAll('.formation-player');
+        formationPlayers.forEach(player => {
+            const playerId = player.dataset.playerId;
+            const playerObj = this.players.find(p => p.id == playerId);
+            if (playerObj) {
+                const timeStr = this.formatTime(playerObj.elapsed);
+                player.className = `formation-player ${playerObj.isActive ? 'active' : ''}`;
+                player.innerHTML = `
+                    <div class="player-name">${this.escapeHtml(playerObj.name)}</div>
+                    <div class="player-time">${timeStr}</div>
+                `;
+                player.setAttribute('draggable', 'true');
+            }
+        });
+        
+        // Update all pool players
+        const poolPlayers = this.formationContent.querySelectorAll('.pool-player');
+        poolPlayers.forEach(player => {
+            const playerId = player.dataset.playerId;
+            const playerObj = this.players.find(p => p.id == playerId);
+            if (playerObj) {
+                const timeStr = this.formatTime(playerObj.elapsed);
+                player.className = `pool-player ${playerObj.isActive ? 'active' : ''}`;
+                player.innerHTML = `
+                    <div class="player-name">${this.escapeHtml(playerObj.name)}</div>
+                    <div class="player-time">${timeStr}</div>
+                `;
+            }
+        });
+    }
+    
+    updateFormationTimerDisplay() {
+        if (this.formationModal.style.display !== 'block') return;
+        
+        const mainTimeStr = this.formatTime(this.mainTimer.elapsed);
+        const timerValue = this.formationContent.querySelector('.timer-value');
+        const formationStartBtn = this.formationContent.querySelector('#formation-start-btn');
+        const formationPauseBtn = this.formationContent.querySelector('#formation-pause-btn');
+        
+        if (timerValue) {
+            timerValue.textContent = mainTimeStr;
+        }
+        
+        if (formationStartBtn && formationPauseBtn) {
+            if (this.mainTimer.isRunning) {
+                formationStartBtn.classList.add('hidden');
+                formationPauseBtn.classList.remove('hidden');
+            } else {
+                formationStartBtn.classList.remove('hidden');
+                formationPauseBtn.classList.add('hidden');
+            }
+        }
+    }
+    
+    switchFormationType() {
+        // Update the formation container
+        const formationContainer = this.formationContent.querySelector('#formation-container');
+        if (formationContainer) {
+            formationContainer.innerHTML = this.createFormationContainer();
+        }
+        
+        // Setup drag and drop for new formation
+        this.setupDragAndDrop();
+        
+        // Restore formation state
+        this.restoreFormationState();
+    }
+    
+    closeFormationModal() {
+        this.formationModal.style.display = 'none';
+        
+        // Clear formation update interval
+        if (this.formationUpdateInterval) {
+            clearInterval(this.formationUpdateInterval);
+            this.formationUpdateInterval = null;
+        }
+    }
+    
+    createFormationHTML() {
+        const mainTimeStr = this.formatTime(this.mainTimer.elapsed);
+        const isRunning = this.mainTimer.isRunning;
+        
+        return `
+            <!-- Timer Controls -->
+            <div class="formation-timer-controls">
+                <div class="formation-timer-display">
+                    <div class="timer-label">טיימר ראשי</div>
+                    <div class="timer-value">${mainTimeStr}</div>
+                </div>
+                <div class="formation-timer-buttons">
+                    <button id="formation-start-btn" class="formation-timer-btn ${isRunning ? 'hidden' : ''}">▶️ התחל</button>
+                    <button id="formation-pause-btn" class="formation-timer-btn ${!isRunning ? 'hidden' : ''}">⏸️ השהיה</button>
+                </div>
+            </div>
+            
+            <!-- Formation Selector -->
+            <div class="formation-selector">
+                <label>בחר מערך:</label>
+                <select id="formation-type-selector">
+                    <option value="circular">מערך עגול (גמיש)</option>
+                    <option value="3-2-3">מערך 3-2-3</option>
+                </select>
+            </div>
+            
+            <div id="formation-container" class="formation-container">
+                ${this.createFormationContainer()}
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <p><strong>גרור שחקנים למקומות הרצויים</strong></p>
+                <p><strong>לחץ על שחקן כדי להפעיל/להשבית</strong></p>
+                <p>שחקנים פעילים מוצגים בירוק עם זמני המשחק שלהם</p>
+            </div>
+        `;
+    }
+    
+    createFormationContainer() {
+        if (this.formationType === '3-2-3') {
+            return this.create323FormationHTML();
+        } else {
+            return this.createCircularFormationHTML();
+        }
+    }
+    
+    createCircularFormationHTML() {
+        return `
+            <div class="circular-formation-container">
+                <div class="formation-field circular-field">
+                    <!-- Goal areas -->
+                    <div class="goal-area top-goal">
+                        <div class="goal-text">⚽ Goal</div>
+                    </div>
+                    
+                    <!-- Circular formation positions -->
+                    <div class="circular-positions">
+                        ${this.createCircularPositions()}
+                    </div>
+                    
+                    <div class="goal-area bottom-goal">
+                        <div class="goal-text">⚽ Goal</div>
+                    </div>
+                </div>
+                
+                <!-- Available players pool -->
+                <div class="players-pool">
+                    <h3>שחקנים זמינים</h3>
+                    <div class="pool-players">
+                        ${this.createPlayersPool()}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    create323FormationHTML() {
+        return `
+            <div class="formation-323-container">
+                <div class="formation-field formation-323-field">
+                    <!-- Goal areas -->
+                    <div class="goal-area top-goal">
+                        <div class="goal-text">⚽ Goal</div>
+                    </div>
+                    
+                    <!-- 3-2-3 Formation positions -->
+                    <div class="formation-323-positions">
+                        ${this.create323Positions()}
+                    </div>
+                    
+                    <div class="goal-area bottom-goal">
+                        <div class="goal-text">⚽ Goal</div>
+                    </div>
+                </div>
+                
+                <!-- Available players pool -->
+                <div class="players-pool">
+                    <h3>שחקנים זמינים</h3>
+                    <div class="pool-players">
+                        ${this.createPlayersPool()}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    createCircularPositions() {
+        // Create 9 positions in a circular layout with diamond midfield
+        const positions = [
+            { id: 'pos-1', label: '1', x: 50, y: 10 },   // Top
+            { id: 'pos-2', label: '2', x: 30, y: 25 },   // Top Left (closer to center)
+            { id: 'pos-3', label: '3', x: 70, y: 25 },   // Top Right (closer to center)
+            { id: 'pos-4', label: '4', x: 10, y: 50 },   // Left (wing - keep as is)
+            { id: 'pos-5', label: '5', x: 50, y: 50 },   // Center (diamond center)
+            { id: 'pos-6', label: '6', x: 90, y: 50 },   // Right (wing - keep as is)
+            { id: 'pos-7', label: '7', x: 35, y: 75 },   // Bottom Left (closer to center for diamond)
+            { id: 'pos-8', label: '8', x: 65, y: 75 },   // Bottom Right (closer to center for diamond)
+            { id: 'pos-9', label: '9', x: 50, y: 90 }    // Bottom (diamond point)
+        ];
+        
+        return positions.map(pos => `
+            <div class="circular-position" 
+                 data-position-id="${pos.id}"
+                 style="left: ${pos.x}%; top: ${pos.y}%;">
+                <div class="position-label">${pos.label}</div>
+                <div class="position-player" data-position-id="${pos.id}">
+                    <div class="player-placeholder">ריק</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    create323Positions() {
+        // Create 9 positions in 3-2-3 formation
+        const positions = [
+            { id: 'pos-1', label: 'GK', x: 50, y: 10 },   // Goalkeeper (moved up)
+            { id: 'pos-2', label: 'LB', x: 15, y: 40 },   // Left Back
+            { id: 'pos-3', label: 'CB', x: 50, y: 45 },   // Center Back (moved down)
+            { id: 'pos-4', label: 'RB', x: 85, y: 40 },   // Right Back
+            { id: 'pos-5', label: 'LM', x: 35, y: 65 },   // Left Midfielder (closer to center)
+            { id: 'pos-6', label: 'RM', x: 65, y: 65 },   // Right Midfielder (closer to center)
+            { id: 'pos-7', label: 'LW', x: 15, y: 85 },   // Left Wing
+            { id: 'pos-8', label: 'ST', x: 50, y: 95 },   // Striker (moved forward)
+            { id: 'pos-9', label: 'RW', x: 85, y: 85 }    // Right Wing
+        ];
+        
+        return positions.map(pos => `
+            <div class="formation-323-position" 
+                 data-position-id="${pos.id}"
+                 style="left: ${pos.x}%; top: ${pos.y}%;">
+                <div class="position-label">${pos.label}</div>
+                <div class="position-player" data-position-id="${pos.id}">
+                    <div class="player-placeholder">ריק</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    createPlayersPool() {
+        return this.players.map(player => `
+            <div class="pool-player ${player.isActive ? 'active' : ''}" 
+                 data-player-id="${player.id}"
+                 draggable="true">
+                <div class="player-name">${this.escapeHtml(player.name)}</div>
+                <div class="player-time">${this.formatTime(player.elapsed)}</div>
+            </div>
+        `).join('');
+    }
+    
+    createPositionHTML(position) {
+        if (!position.player) {
+            return `
+                <div class="formation-position" data-empty="true">
+                    <div class="formation-position-label">${position.label}</div>
+                    <div class="formation-position-name">ריק</div>
+                </div>
+            `;
+        }
+        
+        const player = position.player;
+        const timeStr = this.formatTime(player.elapsed);
+        
+        return `
+            <div class="formation-position ${player.isActive ? 'active' : ''}" 
+                 data-player-id="${player.id}" 
+                 onclick="soccerTimer.togglePlayerActive(${player.id})">
+                <div class="formation-position-label">${position.label}</div>
+                <div class="formation-position-name">${this.escapeHtml(player.name)}</div>
+                <div class="formation-position-time">${timeStr}</div>
+            </div>
+        `;
     }
     
     handleScroll() {

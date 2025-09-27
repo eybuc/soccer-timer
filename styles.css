@@ -1048,3 +1048,609 @@ body {
         min-width: 60px;
     }
 }
+
+/* Formation Modal Styles */
+.formation-modal-content {
+    max-width: 900px;
+    max-height: 90vh;
+}
+
+.formation-field {
+    background: linear-gradient(to bottom, #4CAF50 0%, #2E7D32 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    position: relative;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.formation-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: 15px 0;
+}
+
+.formation-position {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #333;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.formation-position:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.05);
+}
+
+.formation-position.active {
+    background: #4CAF50;
+    color: white;
+    border-color: #2E7D32;
+}
+
+.formation-position-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 2px 0;
+    word-break: break-word;
+    max-width: 70px;
+    line-height: 1.1;
+}
+
+.formation-position-time {
+    font-size: 0.7rem;
+    font-family: 'Courier New', monospace;
+    margin-top: 2px;
+}
+
+.formation-position-label {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #333;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 2px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.formation-position.active .formation-position-label {
+    background: rgba(255, 255, 255, 0.9);
+    color: #2E7D32;
+}
+
+.goal-area {
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px dashed rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    height: 80px;
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: 600;
+}
+
+.goal-text {
+    font-size: 1.2rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 768px) {
+    .formation-modal-content {
+        margin: 5% auto;
+        width: 95%;
+        max-height: 85vh;
+    }
+    
+    .formation-field {
+        padding: 15px;
+        min-height: 400px;
+    }
+    
+    .formation-position {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .formation-position-name {
+        font-size: 0.7rem;
+        max-width: 50px;
+    }
+    
+    .formation-position-time {
+        font-size: 0.6rem;
+    }
+    
+    .formation-position-label {
+        font-size: 0.6rem;
+        top: -20px;
+    }
+    
+    .formation-row {
+        gap: 15px;
+        margin: 10px 0;
+    }
+    
+    .goal-area {
+        height: 60px;
+    }
+    
+    .goal-text {
+        font-size: 1rem;
+    }
+}
+
+/* Formation Timer Controls */
+.formation-timer-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #e2e8f0;
+}
+
+/* Formation Selector */
+.formation-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 2px solid #e2e8f0;
+}
+
+.formation-selector label {
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+}
+
+.formation-selector select {
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #2d3748;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.formation-selector select:hover {
+    border-color: #4CAF50;
+}
+
+.formation-selector select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.formation-timer-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.timer-label {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timer-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2d3748;
+    font-family: 'Courier New', monospace;
+}
+
+.formation-timer-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.formation-timer-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 80px;
+}
+
+.formation-timer-btn:not(.hidden) {
+    background: #4CAF50;
+    color: white;
+}
+
+.formation-timer-btn:not(.hidden):hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.formation-timer-btn.hidden {
+    display: none;
+}
+
+/* Formation Container */
+.formation-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Circular Formation Styles */
+.circular-formation-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 3-2-3 Formation Styles */
+.formation-323-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.formation-323-field {
+    position: relative;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.formation-323-positions {
+    position: relative;
+    flex: 1;
+    min-height: 300px;
+}
+
+.formation-323-position {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    transform: translate(-50%, -50%);
+}
+
+.formation-323-position .position-label {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.7rem;
+    border: 2px solid #333;
+}
+
+.formation-323-position .position-player {
+    width: 100%;
+    height: 100%;
+    border: 3px solid #333;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.formation-323-position .position-player:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.05);
+}
+
+.formation-323-position .position-player.drag-over {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.2);
+    transform: scale(1.1);
+}
+
+.formation-323-position .player-placeholder {
+    font-size: 0.7rem;
+    color: #666;
+    font-weight: 600;
+}
+
+.circular-field {
+    position: relative;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.top-goal {
+    margin-bottom: 20px;
+}
+
+.bottom-goal {
+    margin-top: 20px;
+}
+
+.circular-positions {
+    position: relative;
+    flex: 1;
+    min-height: 300px;
+}
+
+.circular-position {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    transform: translate(-50%, -50%);
+}
+
+.position-label {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    border: 2px solid #333;
+}
+
+.position-player {
+    width: 100%;
+    height: 100%;
+    border: 3px solid #333;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.position-player:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.05);
+}
+
+.position-player.drag-over {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.2);
+    transform: scale(1.1);
+}
+
+.player-placeholder {
+    font-size: 0.7rem;
+    color: #666;
+    font-weight: 600;
+}
+
+.formation-player {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    cursor: move;
+}
+
+.formation-player.dragging {
+    opacity: 0.5;
+    transform: scale(0.9);
+}
+
+.formation-player.active {
+    background: #4CAF50;
+    color: white;
+    border-color: #2E7D32;
+}
+
+.formation-player .player-name {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 2px 0;
+    word-break: break-word;
+    max-width: 60px;
+    line-height: 1.1;
+}
+
+.formation-player .player-time {
+    font-size: 0.6rem;
+    font-family: 'Courier New', monospace;
+    margin-top: 2px;
+}
+
+.players-pool {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.players-pool h3 {
+    margin: 0 0 15px 0;
+    color: #2d3748;
+    text-align: center;
+}
+
+.pool-players {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.pool-player {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    cursor: move;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.pool-player:hover {
+    border-color: #4CAF50;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.pool-player.active {
+    background: #4CAF50;
+    color: white;
+    border-color: #2E7D32;
+}
+
+.pool-player.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.pool-player .player-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    word-break: break-word;
+}
+
+.pool-player .player-time {
+    font-size: 0.7rem;
+    font-family: 'Courier New', monospace;
+}
+
+@media (max-width: 768px) {
+    .formation-selector {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .formation-selector select {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 1rem;
+    }
+    
+    .formation-timer-controls {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .formation-timer-display {
+        order: 2;
+    }
+    
+    .formation-timer-buttons {
+        order: 1;
+        justify-content: center;
+    }
+    
+    .timer-value {
+        font-size: 1.2rem;
+    }
+    
+    .formation-timer-btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+        min-width: 100px;
+    }
+    
+    .circular-field,
+    .formation-323-field {
+        min-height: 350px;
+    }
+    
+    .circular-position,
+    .formation-323-position {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .position-label {
+        width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+        top: -20px;
+    }
+    
+    .formation-player .player-name {
+        font-size: 0.6rem;
+        max-width: 45px;
+    }
+    
+    .formation-player .player-time {
+        font-size: 0.5rem;
+    }
+    
+    .player-placeholder {
+        font-size: 0.6rem;
+    }
+    
+    .pool-players {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+    }
+    
+    .pool-player {
+        padding: 8px;
+    }
+    
+    .pool-player .player-name {
+        font-size: 0.7rem;
+    }
+    
+    .pool-player .player-time {
+        font-size: 0.6rem;
+    }
+}
